@@ -1,0 +1,2398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Course Cart</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root {
+  --paper:      #EDF0F5;
+  --surface:    #FFFFFF;
+  --surface-2:  #F6F8FB;
+  --surface-3:  #E4E9F1;
+  --ink:        #0B1F3A;
+  --ink-2:      #40536E;
+  --ink-3:      #71829A;
+  --rule:       #CCD5E1;
+  --rule-2:     #AEBDCF;
+  --accent:     #1E407C;
+  --accent-ink: #FFFFFF;
+  --accent-soft:#DBE5F6;
+  --ok:         #1B6647;
+  --warn:       #8C5410;
+  --bad:        #9E2A22;
+  --bad-soft:   #FBE4E1;
+
+  /* Calendar blocks: hue comes from the data, lightness from the theme. */
+  --blk-fill-s: 68%;  --blk-fill-l: 92%;
+  --blk-edge-s: 46%;  --blk-edge-l: 52%;
+  --blk-text-s: 58%;  --blk-text-l: 25%;
+
+  --sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --cond: "IBM Plex Sans Condensed", "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --hour-h: 56px;
+  --shell-pad: 18px;
+  --shadow: 0 8px 24px rgba(11, 31, 58, .16);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:      #070D18;
+    --surface:    #0D1725;
+    --surface-2:  #131F31;
+    --surface-3:  #1B2A40;
+    --ink:        #DEE6F3;
+    --ink-2:      #A2B2C8;
+    --ink-3:      #77879E;
+    --rule:       #21344D;
+    --rule-2:     #33496A;
+    --accent:     #79A3E4;
+    --accent-ink: #061020;
+    --accent-soft:#16263E;
+    --ok:         #5FBF92;
+    --warn:       #D9A15C;
+    --bad:        #EF8279;
+    --bad-soft:   #33191A;
+    --blk-fill-s: 34%;  --blk-fill-l: 19%;
+    --blk-edge-s: 44%;  --blk-edge-l: 46%;
+    --blk-text-s: 55%;  --blk-text-l: 76%;
+    --shadow: 0 10px 28px rgba(0, 0, 0, .55);
+  }
+}
+:root[data-theme="dark"] {
+  --paper:      #070D18;
+  --surface:    #0D1725;
+  --surface-2:  #131F31;
+  --surface-3:  #1B2A40;
+  --ink:        #DEE6F3;
+  --ink-2:      #A2B2C8;
+  --ink-3:      #77879E;
+  --rule:       #21344D;
+  --rule-2:     #33496A;
+  --accent:     #79A3E4;
+  --accent-ink: #061020;
+  --accent-soft:#16263E;
+  --ok:         #5FBF92;
+  --warn:       #D9A15C;
+  --bad:        #EF8279;
+  --bad-soft:   #33191A;
+  --blk-fill-s: 34%;  --blk-fill-l: 19%;
+  --blk-edge-s: 44%;  --blk-edge-l: 46%;
+  --blk-text-s: 55%;  --blk-text-l: 76%;
+  --shadow: 0 10px 28px rgba(0, 0, 0, .55);
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 15px/1.45 var(--sans);
+  -webkit-font-smoothing: antialiased;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* ---------- top bar ---------- */
+.topbar {
+  flex: none;
+  display: flex; align-items: center; gap: 20px;
+  padding: 12px var(--shell-pad);
+  background: var(--surface);
+  border-bottom: 1px solid var(--rule-2);
+}
+.wordmark { display: flex; align-items: baseline; gap: 10px; margin-right: auto; }
+.wordmark h1 {
+  margin: 0;
+  font: 700 21px/1 var(--cond);
+  letter-spacing: .01em;
+}
+.wordmark p {
+  margin: 0; color: var(--ink-3);
+  font-size: 12.5px; letter-spacing: .04em; text-transform: uppercase;
+}
+.loadbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.tally {
+  font: 500 12.5px/1 var(--mono);
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.btn {
+  border: 1px solid var(--rule-2);
+  background: var(--surface-2);
+  color: var(--ink);
+  padding: 7px 13px;
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 13.5px;
+  line-height: 1.2;
+}
+.btn:hover { background: var(--surface-3); }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.btn-primary:hover { filter: brightness(1.08); }
+.btn-quiet { border-color: transparent; background: none; color: var(--ink-3); padding: 4px 6px; }
+.btn-quiet:hover { background: var(--surface-3); color: var(--ink); }
+.btn:disabled { opacity: .45; cursor: default; }
+
+/* ---------- bundled-set picker ---------- */
+.picker { position: relative; }
+.picker > summary { list-style: none; cursor: pointer; }
+.picker > summary::-webkit-details-marker { display: none; }
+.picker[open] > summary { background: var(--surface-3); }
+.picker-panel {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 30;
+  min-width: 320px; max-width: 440px;
+  padding: 6px;
+  background: var(--surface);
+  border: 1px solid var(--rule-2);
+  border-radius: 2px;
+  box-shadow: var(--shadow);
+  display: flex; flex-direction: column;
+}
+.picker-item {
+  display: grid; grid-template-columns: auto 1fr; gap: 9px;
+  padding: 7px 8px; border-radius: 2px; cursor: pointer;
+}
+.picker-item:hover { background: var(--surface-2); }
+.picker-item input { margin: 3px 0 0; accent-color: var(--accent); }
+.picker-item .name { font-size: 13px; }
+.picker-item .meta { display: block; font: 400 11px/1.4 var(--mono); color: var(--ink-3); }
+.picker-note { padding: 8px; font-size: 12.5px; color: var(--ink-3); }
+.picker-note code {
+  font: 400 11.5px/1.5 var(--mono);
+  background: var(--surface-2); border: 1px solid var(--rule);
+  padding: 1px 4px; border-radius: 2px;
+}
+
+/* ---------- workspace ---------- */
+.workspace {
+  flex: 1; min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(400px, 1fr) minmax(540px, 1.08fr);
+}
+.finder, .board { min-height: 0; display: flex; flex-direction: column; }
+.finder { border-right: 1px solid var(--rule-2); background: var(--surface); }
+.board { background: var(--paper); overflow-y: auto; }
+
+/* ---------- filters ---------- */
+.filters {
+  flex: none;
+  padding: 12px var(--shell-pad) 10px;
+  border-bottom: 1px solid var(--rule);
+  background: var(--surface-2);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 10px;
+}
+.filters .wide { grid-column: 1 / -1; }
+.field { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.field > label {
+  font: 600 10.5px/1 var(--sans);
+  letter-spacing: .09em; text-transform: uppercase; color: var(--ink-3);
+}
+.field input[type="search"], .field select {
+  width: 100%;
+  border: 1px solid var(--rule-2);
+  background: var(--surface);
+  border-radius: 2px;
+  padding: 7px 9px;
+}
+.toggles { grid-column: 1 / -1; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.check { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); cursor: pointer; }
+.check input { accent-color: var(--accent); }
+.bulk { display: inline-flex; gap: 2px; }
+.bulk .btn { font-size: 12px; padding: 3px 7px; }
+.resultcount {
+  margin-left: auto;
+  font: 500 12px/1 var(--mono);
+  color: var(--ink-3); font-variant-numeric: tabular-nums;
+}
+
+/* ---------- results ---------- */
+.results { flex: 1; overflow-y: auto; }
+.course { border-bottom: 1px solid var(--rule); }
+.course-head::-webkit-details-marker { display: none; }
+.course-head { list-style: none; }
+.course[open] .chev { transform: rotate(90deg); }
+.chev { transition: transform .12s ease; }
+.course-head {
+  width: 100%; text-align: left;
+  display: grid; grid-template-columns: auto 1fr auto; align-items: baseline; gap: 4px 12px;
+  padding: 11px var(--shell-pad);
+  background: none; border: 0; cursor: pointer;
+}
+.course-head:hover { background: var(--surface-2); }
+.course-code {
+  font: 700 16px/1.1 var(--cond);
+  letter-spacing: .01em;
+  white-space: nowrap;
+}
+.course-title { font-size: 14px; color: var(--ink-2); }
+.course-meta {
+  font: 400 11.5px/1 var(--mono); color: var(--ink-3);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.course[open] .course-head { background: var(--surface-2); }
+.chev { display: inline-block; width: 9px; color: var(--ink-3); }
+
+.sections { border-top: 1px solid var(--rule); }
+.section {
+  display: grid;
+  grid-template-columns: 112px 1fr 132px auto;
+  gap: 4px 12px;
+  align-items: start;
+  padding: 9px var(--shell-pad) 9px calc(var(--shell-pad) + 10px);
+  border-bottom: 1px solid var(--rule);
+  border-left: 3px solid transparent;
+  background: var(--surface);
+}
+.section:last-child { border-bottom: 0; }
+.section:hover { background: var(--surface-2); border-left-color: hsl(var(--h) var(--blk-edge-s) var(--blk-edge-l)); }
+.section.in-cart { border-left-color: hsl(var(--h) var(--blk-edge-s) var(--blk-edge-l)); background: var(--surface-2); }
+.sec-id { font: 500 13px/1.35 var(--mono); font-variant-numeric: tabular-nums; }
+.sec-id .nbr { display: block; color: var(--ink-3); font-size: 11.5px; }
+.sec-plus {
+  font-size: 12.5px; color: var(--ink-3); font-style: italic; margin-top: 2px;
+}
+.sec-topic {
+  font: 600 13px/1.35 var(--sans);
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+.sec-when { font-size: 13px; line-height: 1.45; }
+.sec-when .pattern { font: 400 12.5px/1.45 var(--mono); font-variant-numeric: tabular-nums; }
+.sec-when .where { color: var(--ink-2); }
+.sec-when .async { color: var(--ink-3); font-style: italic; }
+.sec-who { font-size: 12.5px; color: var(--ink-2); }
+.sec-who .none { color: var(--ink-3); font-style: italic; }
+.sec-act { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+
+.pill {
+  display: inline-block;
+  font: 600 10.5px/1 var(--sans);
+  letter-spacing: .06em; text-transform: uppercase;
+  padding: 3px 6px; border-radius: 2px;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+}
+.pill.open   { color: var(--ok); }
+.pill.wait   { color: var(--warn); }
+.pill.closed { color: var(--bad); }
+.pill.unknown{ color: var(--ink-3); }
+.seats { font: 500 11.5px/1 var(--mono); color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.seats.stamp { font-family: var(--sans); font-weight: 400; font-size: 11px; }
+
+/* ---------- board ---------- */
+.board-section { padding: 14px var(--shell-pad); }
+.board-section + .board-section { border-top: 1px solid var(--rule); }
+.board-head {
+  display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px;
+}
+.board-head h2 {
+  margin: 0; font: 700 12px/1 var(--sans);
+  letter-spacing: .11em; text-transform: uppercase; color: var(--ink-2);
+}
+.board-head .count { font: 500 11.5px/1 var(--mono); color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.board-head .spacer { margin-left: auto; }
+
+.termtabs { display: inline-flex; gap: 2px; }
+.termtab {
+  border: 1px solid var(--rule-2);
+  background: var(--surface-2);
+  color: var(--ink-2);
+  border-radius: 2px;
+  padding: 3px 9px;
+  font: 600 11.5px/1.3 var(--sans);
+  cursor: pointer;
+}
+.termtab:hover { background: var(--surface-3); color: var(--ink); }
+.termtab.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+
+.cart-term + .cart-term { margin-top: 12px; }
+.cart-term-head {
+  display: flex; align-items: baseline; gap: 8px; width: 100%;
+  padding: 5px 0; margin: 0 0 2px;
+  background: none; border: 0; border-bottom: 1px solid var(--rule-2);
+  cursor: pointer; text-align: left;
+}
+.cart-term-head:hover .name { color: var(--accent); }
+.cart-term-head .name {
+  font: 700 11.5px/1 var(--sans); letter-spacing: .09em; text-transform: uppercase;
+  color: var(--ink-2);
+}
+.cart-term-head .count {
+  margin-left: auto; font: 500 11.5px/1 var(--mono); color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.cart-term.on .cart-term-head .name { color: var(--ink); }
+.cart-term:not(.on) .cart-item { opacity: .62; }
+
+.calendar {
+  background: var(--surface);
+  border: 1px solid var(--rule-2);
+}
+.cal-grid { display: grid; grid-template-columns: 46px repeat(var(--days), 1fr); }
+.cal-daylabel, .cal-corner {
+  font: 600 11px/1 var(--sans); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--ink-2);
+  padding: 7px 0; text-align: center;
+  border-bottom: 1px solid var(--rule-2);
+  background: var(--surface-2);
+}
+.cal-daylabel + .cal-daylabel, .cal-daylabel:first-of-type { border-left: 1px solid var(--rule); }
+.cal-body { position: relative; }
+.cal-gutter { position: relative; border-right: 1px solid var(--rule-2); }
+.cal-hour {
+  position: absolute; right: 6px; transform: translateY(-50%);
+  font: 400 10.5px/1 var(--mono); color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+/* The end labels sit on the grid's edges, so pull them inward instead of
+   letting half the text clip off. */
+.cal-hour.edge-first { transform: translateY(0); }
+.cal-hour.edge-last  { transform: translateY(-100%); }
+.cal-col { position: relative; border-left: 1px solid var(--rule); }
+.cal-rule { position: absolute; left: 0; right: 0; border-top: 1px solid var(--rule); }
+.cal-rule.half { border-top-style: dotted; opacity: .65; }
+
+.blk {
+  position: absolute; left: 2px; right: 2px;
+  border: 1px solid hsl(var(--h) var(--blk-edge-s) var(--blk-edge-l));
+  border-left-width: 3px;
+  background: hsl(var(--h) var(--blk-fill-s) var(--blk-fill-l));
+  color: hsl(var(--h) var(--blk-text-s) var(--blk-text-l));
+  border-radius: 2px;
+  padding: 3px 5px;
+  overflow: hidden;
+  font-size: 11.5px; line-height: 1.25;
+}
+.blk .code {
+  font: 700 12px/1.25 var(--cond); display: block;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.blk .meta {
+  font: 400 10px/1.2 var(--mono); opacity: .85; display: block;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.blk .meta + .meta { font-family: var(--sans); }
+.blk.preview {
+  border: 1px dashed var(--rule-2);
+  background: var(--surface-3);
+  color: var(--ink-2);
+  z-index: 5;
+}
+.blk.preview.tight { border-left-width: 1px; }
+.blk.clash { border-color: var(--bad); box-shadow: inset 0 0 0 1px var(--bad); }
+/* Give the last few pixels over to the characters themselves: no ellipsis,
+   which at this width would be most of what you see, and barely any padding. */
+.blk.tight { padding: 2px 1px; border-left-width: 2px; }
+.blk.tight .code { text-overflow: clip; font-size: 11px; letter-spacing: -.01em; }
+
+.clash-note {
+  margin-top: 8px;
+  border-left: 3px solid var(--bad);
+  background: var(--bad-soft);
+  color: var(--ink);
+  padding: 7px 10px;
+  font-size: 12.5px;
+}
+
+.chiplist { display: flex; flex-direction: column; gap: 4px; }
+.offgrid {
+  display: grid; grid-template-columns: 9px 1fr; gap: 9px; align-items: center;
+  border: 1px solid var(--rule); background: var(--surface);
+  border-radius: 2px; padding: 6px 8px;
+}
+.offgrid .swatch { align-self: stretch; min-height: 20px; border-radius: 1px; background: hsl(var(--h) var(--blk-edge-s) var(--blk-edge-l)); }
+.offgrid .lbl { font: 700 13px/1.3 var(--cond); margin-right: 8px; }
+.offgrid .sub { color: var(--ink-2); font-size: 12.5px; }
+/* Same language as a preview tile on the grid: dashed, and not yours yet. */
+.offgrid.preview {
+  border-style: dashed;
+  border-color: var(--rule-2);
+  background: var(--surface-2);
+}
+.offgrid.preview .swatch { background: var(--rule-2); }
+.offgrid.preview .lbl, .offgrid.preview .sub { color: var(--ink-3); }
+.offgrid.preview .lbl::after {
+  content: "preview";
+  margin-left: 7px;
+  font: 600 9.5px/1 var(--sans); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--ink-3); border: 1px dashed var(--rule-2); border-radius: 2px; padding: 2px 4px;
+  vertical-align: 1px;
+}
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid var(--rule-2);
+  background: var(--surface);
+  border-radius: 2px;
+  padding: 4px 6px 4px 4px;
+  font-size: 12px;
+}
+.chip .swatch { width: 9px; height: 16px; border-radius: 1px; background: hsl(var(--h) var(--blk-edge-s) var(--blk-edge-l)); }
+.chip .lbl { font: 600 12px/1 var(--cond); }
+.chip .sub { color: var(--ink-3); font: 400 11px/1 var(--mono); }
+
+.cart-item {
+  display: grid; grid-template-columns: 4px 1fr auto; gap: 10px; align-items: center;
+  padding: 8px 0; border-bottom: 1px solid var(--rule);
+}
+.cart-item:last-child { border-bottom: 0; }
+.cart-item .bar {
+  align-self: stretch; width: 100%; min-height: 22px; padding: 0;
+  background: hsl(var(--h) var(--blk-edge-s) var(--blk-edge-l));
+  border: 0; border-radius: 1px; cursor: pointer;
+}
+.cart-item .bar:hover { outline: 2px solid hsl(var(--h) var(--blk-edge-s) var(--blk-edge-l)); outline-offset: 2px; }
+
+.palette {
+  grid-column: 1 / -1;
+  display: flex; align-items: center; flex-wrap: wrap; gap: 5px;
+  margin-top: 8px; padding: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+}
+.palette-label {
+  font: 600 10.5px/1 var(--sans); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--ink-3); margin-right: 4px;
+}
+.swatch-btn {
+  width: 20px; height: 20px; padding: 0; cursor: pointer;
+  border: 1px solid hsl(var(--h) var(--blk-edge-s) var(--blk-edge-l));
+  background: hsl(var(--h) var(--blk-fill-s) var(--blk-fill-l));
+  border-radius: 2px;
+}
+.swatch-btn:hover { background: hsl(var(--h) var(--blk-edge-s) var(--blk-edge-l)); }
+.swatch-btn.on {
+  background: hsl(var(--h) var(--blk-edge-s) var(--blk-edge-l));
+  box-shadow: inset 0 0 0 2px var(--surface);
+}
+.palette-reset { margin-left: auto; font-size: 12px; }
+.cart-item .code { font: 700 14px/1.2 var(--cond); }
+.cart-item .line { font-size: 12px; color: var(--ink-2); }
+.cart-item .line .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.cart-item.clash .code::after {
+  content: "conflict";
+  margin-left: 7px;
+  font: 600 9.5px/1 var(--sans); letter-spacing: .07em; text-transform: uppercase;
+  color: var(--bad); border: 1px solid var(--bad); border-radius: 2px; padding: 2px 4px;
+  vertical-align: 2px;
+}
+
+.empty {
+  padding: 34px var(--shell-pad);
+  color: var(--ink-2);
+  max-width: 62ch;
+}
+.empty h2 { margin: 0 0 8px; font: 700 17px/1.2 var(--cond); color: var(--ink); }
+.empty p { margin: 0 0 10px; font-size: 13.5px; }
+.empty code {
+  font: 400 12.5px/1.5 var(--mono);
+  background: var(--surface-2); border: 1px solid var(--rule);
+  padding: 1px 5px; border-radius: 2px;
+  display: inline-block;
+}
+.empty pre {
+  margin: 0 0 12px;
+  font: 400 12px/1.6 var(--mono);
+  background: var(--surface-2); border: 1px solid var(--rule);
+  padding: 10px 12px; border-radius: 2px;
+  overflow-x: auto;
+}
+.muted { color: var(--ink-3); font-size: 12.5px; }
+
+.dropzone {
+  position: fixed; inset: 0; z-index: 40;
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  display: none; align-items: center; justify-content: center;
+}
+.dropzone.on { display: flex; }
+.dropzone > div {
+  border: 2px dashed var(--accent); background: var(--surface);
+  padding: 30px 44px; border-radius: 3px;
+  font: 600 16px/1 var(--cond); color: var(--accent);
+}
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+@media (max-width: 1040px) {
+  body { overflow: auto; }
+  .workspace { grid-template-columns: 1fr; }
+  .finder { border-right: 0; border-bottom: 1px solid var(--rule-2); }
+  .results { overflow: visible; }
+  .board { overflow: visible; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="wordmark">
+    <h1>Course Cart</h1>
+    <p>Penn State schedule planner</p>
+  </div>
+  <div class="loadbar">
+    <span class="tally" id="tally">No classes loaded</span>
+    <details class="picker" id="picker" hidden>
+      <summary class="btn" id="pickerSummary">Bundled sets</summary>
+      <div class="picker-panel" id="pickerPanel"></div>
+    </details>
+    <label class="btn btn-primary" for="csvInput">Load CSV</label>
+    <input class="sr-only" type="file" id="csvInput" accept=".csv,text/csv" multiple>
+    <button class="btn" id="clearData" hidden>Clear</button>
+  </div>
+</header>
+
+<main class="workspace">
+  <section class="finder" aria-label="Class search">
+    <div class="filters">
+      <div class="field wide">
+        <label for="q">Search</label>
+        <input type="search" id="q" placeholder="CMPSC 131, calculus, Ashtekar&hellip;" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="fCampus">Campus</label>
+        <select id="fCampus"><option value="">All campuses</option></select>
+      </div>
+      <div class="field">
+        <label for="fCareer">Career</label>
+        <select id="fCareer"><option value="">All careers</option></select>
+      </div>
+      <div class="field" id="termField" hidden>
+        <label for="fTerm">Term</label>
+        <select id="fTerm"></select>
+      </div>
+      <div class="toggles">
+        <label class="check"><input type="checkbox" id="fOpen"> Seats available only</label>
+        <label class="check"><input type="checkbox" id="fNoClash"> Hide conflicts with cart</label>
+        <span class="resultcount" id="resultCount"></span>
+        <span class="bulk">
+          <button class="btn btn-quiet" type="button" id="expandAll">Expand all</button>
+          <button class="btn btn-quiet" type="button" id="collapseAll">Collapse all</button>
+        </span>
+      </div>
+    </div>
+    <div class="results" id="results"></div>
+  </section>
+
+  <aside class="board" aria-label="Schedule and cart">
+    <div class="board-section">
+      <div class="board-head">
+        <h2>Week</h2>
+        <div class="termtabs" id="termTabs"></div>
+        <span class="spacer"></span>
+        <span class="count" id="calHint"></span>
+      </div>
+      <div class="calendar" id="calendar"></div>
+      <div id="clashNote"></div>
+    </div>
+
+    <div class="board-section" id="asyncSection" hidden>
+      <div class="board-head">
+        <h2>No posted time</h2>
+        <span class="count" id="asyncCount"></span>
+      </div>
+      <div class="chiplist" id="asyncList"></div>
+    </div>
+
+    <div class="board-section">
+      <div class="board-head">
+        <h2>Cart</h2>
+        <span class="count" id="cartCount">0 sections</span>
+        <span class="spacer"></span>
+        <button class="btn btn-quiet" id="copyCart">Copy</button>
+        <button class="btn btn-quiet" id="saveCart">Save .csv</button>
+        <button class="btn btn-quiet" id="saveIcs">Save .ics</button>
+        <button class="btn btn-quiet" id="emptyCart">Empty</button>
+      </div>
+      <p class="muted" id="exportNote" hidden></p>
+      <div id="cartList"></div>
+    </div>
+  </aside>
+</main>
+
+<div class="dropzone" id="dropzone"><div>Drop scraper CSVs to load</div></div>
+
+<script src="data/bundled.js" onerror="void 0"></script>
+<script id="core">
+/* Pure data logic. No DOM in here, so it can be unit-tested on its own. */
+var Core = (function () {
+  "use strict";
+
+  var DAY_TOKENS = [
+    ["WEB", null], ["APPT", null],
+    ["Th", 3], ["Sa", 5], ["Su", 6],
+    ["M", 0], ["T", 1], ["W", 2], ["F", 4]
+  ];
+  var DAY_RE = /WEB|APPT|Th|Sa|Su|M|T|W|F/g;
+  var DAY_INDEX = { Th: 3, Sa: 5, Su: 6, M: 0, T: 1, W: 2, F: 4 };
+  var DAY_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  var TIME_RE = /(\d{1,2}):(\d{2})\s*([AP]M)\s*-\s*(\d{1,2}):(\d{2})\s*([AP]M)/i;
+  var JOIN = " | ";
+
+  /* RFC 4180 parser: the scraper quotes fields that contain commas (notes,
+     multi-instructor lists), so a naive split on "," loses columns. */
+  function parseCSV(text) {
+    var rows = [], row = [], field = "", quoted = false, i = 0;
+    if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+    text = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+    while (i < text.length) {
+      var c = text[i];
+      if (quoted) {
+        if (c === '"') {
+          if (text[i + 1] === '"') { field += '"'; i += 2; continue; }
+          quoted = false; i++; continue;
+        }
+        field += c; i++; continue;
+      }
+      if (c === '"') { quoted = true; i++; continue; }
+      if (c === ",") { row.push(field); field = ""; i++; continue; }
+      if (c === "\n") { row.push(field); rows.push(row); row = []; field = ""; i++; continue; }
+      field += c; i++;
+    }
+    if (field.length || row.length) { row.push(field); rows.push(row); }
+    if (!rows.length) return { headers: [], records: [] };
+    var headers = rows[0].map(function (h) { return h.trim(); });
+    var records = [];
+    for (var r = 1; r < rows.length; r++) {
+      if (rows[r].length === 1 && rows[r][0] === "") continue;
+      var rec = {};
+      for (var c2 = 0; c2 < headers.length; c2++) rec[headers[c2]] = (rows[r][c2] || "").trim();
+      records.push(rec);
+    }
+    return { headers: headers, records: records };
+  }
+
+  function toMinutes(hh, mm, ap) {
+    var h = parseInt(hh, 10) % 12;
+    if (ap.toUpperCase() === "PM") h += 12;
+    return h * 60 + parseInt(mm, 10);
+  }
+
+  function formatMinutes(m) {
+    var h = Math.floor(m / 60), mm = m % 60;
+    var ap = h >= 12 ? "PM" : "AM";
+    var h12 = h % 12; if (h12 === 0) h12 = 12;
+    return h12 + ":" + (mm < 10 ? "0" : "") + mm + " " + ap;
+  }
+
+  /* Split on the pipe itself, not on " | ": reading a CSV trims each field, so a
+     row whose last meeting pattern has no room arrives as "Chambers Bldg 104 |"
+     and an exact-separator split would leave the pipe glued to the room. */
+  function splitField(value) {
+    return String(value || "").split(/\s*\|\s*/);
+  }
+
+  /* One meeting pattern -> days + minute range, or a note that it has no time. */
+  function parsePattern(daysText, timeText, place) {
+    var days = [], async = [];
+    var tokens = (daysText || "").match(DAY_RE) || [];
+    tokens.forEach(function (t) {
+      if (t === "WEB" || t === "APPT") { if (async.indexOf(t) < 0) async.push(t); }
+      else if (DAY_INDEX[t] !== undefined && days.indexOf(DAY_INDEX[t]) < 0) days.push(DAY_INDEX[t]);
+    });
+    days.sort(function (a, b) { return a - b; });
+    var time = TIME_RE.exec(timeText || "");
+    var start = null, end = null;
+    if (time) {
+      start = toMinutes(time[1], time[2], time[3]);
+      end = toMinutes(time[4], time[5], time[6]);
+      if (end <= start) end = start + 50;
+    }
+    return {
+      days: days,
+      start: start,
+      end: end,
+      location: place || "",
+      asyncTags: async,
+      scheduled: days.length > 0 && start !== null
+    };
+  }
+
+  function parseSection(rec) {
+    if (!rec || typeof rec !== "object") rec = {};
+    var dayParts = splitField(rec.meeting_days);
+    var timeParts = splitField(rec.meeting_times);
+    var placeParts = splitField(rec.meeting_location);
+    var n = Math.max(dayParts.length, timeParts.length, placeParts.length);
+    var patterns = [];
+    for (var i = 0; i < n; i++) {
+      var p = parsePattern(dayParts[i], timeParts[i], placeParts[i]);
+      if (p.days.length || p.start !== null || p.asyncTags.length || p.location) patterns.push(p);
+    }
+    var avail = rec.seats_available === "" ? null : parseInt(rec.seats_available, 10);
+    var total = rec.seats_total === "" ? null : parseInt(rec.seats_total, 10);
+    var status = rec.status || "";
+    if (!status) status = avail !== null && avail > 0 ? "Open" : "";
+
+    var s = {
+      id: (rec.term || "") + "#" + (rec.class_number || ""),
+      term: rec.term || "",
+      campus: rec.campus || "",
+      subject: rec.subject || "",
+      catalog: rec.catalog_number || "",
+      section: rec.section || "",
+      classNumber: rec.class_number || "",
+      title: rec.course_title || "",
+      topic: rec.topic || "",
+      baseTitle: "",
+      component: rec.component || "",
+      career: rec.career || "",
+      instructor: rec.instructor || "",
+      seatsAvailable: isNaN(avail) ? null : avail,
+      seatsTotal: isNaN(total) ? null : total,
+      waitlist: (rec.waitlist_available || "").toUpperCase() === "Y",
+      status: status,
+      session: rec.academic_session || "",
+      dates: rec.meeting_dates || "",
+      notes: rec.notes || "",
+      retrievedAt: rec.retrieved_at || "",
+      relatedTo: rec.related_to || "",
+      url: rec.detail_url || "",
+      patterns: patterns
+    };
+    s.baseKey = s.subject + " " + s.catalog;
+    // A recitation or lab gets its own listing -- "MATH 22 - REC" -- but shares
+    // the lecture's colour, because it is the same class.
+    s.courseKey = s.relatedTo ? s.baseKey + " - " + (s.component || "REL") : s.baseKey;
+    s.colorKey = s.baseKey;
+    // "MATH 22-001R", not "MATH 22 - REC-001R": the section number already says
+    // which component it is, and this string goes into the cart and the export.
+    s.code = s.baseKey + "-" + s.section;
+    s.meetings = patterns.filter(function (p) { return p.scheduled; });
+    s.asyncOnly = s.meetings.length === 0;
+    /* Class numbers are matched whole, not as substrings: otherwise searching
+       "CMPSC 131" also turns up CMPSC 221, whose class number contains 131. */
+    s.searchText = [
+      s.courseKey, s.baseKey, s.subject + s.catalog, s.title, s.topic, s.instructor,
+      s.campus, s.section, s.component, s.componentDescription || ""
+    ].join(" ").toLowerCase();
+    return s;
+  }
+
+  function statusKind(s) {
+    var t = (s.status || "").toLowerCase();
+    if (t.indexOf("wait") >= 0) return "wait";
+    if (t.indexOf("closed") >= 0) return "closed";
+    if (t.indexOf("open") >= 0) return "open";
+    if (s.seatsAvailable !== null) return s.seatsAvailable > 0 ? "open" : "closed";
+    return "unknown";
+  }
+
+  function hasSeats(s) {
+    var kind = statusKind(s);
+    if (kind === "open") return true;
+    if (kind === "unknown") return s.seatsAvailable === null ? false : s.seatsAvailable > 0;
+    return false;
+  }
+
+  /* Courses whose catalog title is a container for a per-section topic. Mirrors
+     the scraper's rule so a CSV written before the topic column still splits. */
+  var TOPIC_HEAD_RE = /^(?:special|selected)\s+topics?\b|^independent\s+stud(?:y|ies)\b|^special\s+stud(?:y|ies)\b|^research\s+topics?\b/i;
+
+  function splitTopic(title) {
+    var at = title.indexOf(": ");
+    if (at < 0) return { base: title, topic: "" };
+    var head = title.slice(0, at).trim(), tail = title.slice(at + 2).trim();
+    if (!tail || !TOPIC_HEAD_RE.test(head)) return { base: title, topic: "" };
+    return { base: head, topic: tail };
+  }
+
+  /* Second rule: sections of one course that disagree about their title are
+     carrying topics too, whatever the course happens to be called. */
+  function annotateTopics(sections) {
+    var groups = {};
+    sections.forEach(function (s) {
+      var key = s.term + "|" + s.subject + "|" + s.catalog;
+      (groups[key] = groups[key] || []).push(s);
+    });
+    Object.keys(groups).forEach(function (key) {
+      var members = groups[key], titles = {}, count = 0;
+      members.forEach(function (m) { if (!titles[m.title]) { titles[m.title] = 1; count++; } });
+      members.forEach(function (m) {
+        if (m.topic) { m.baseTitle = m.baseTitle || splitTopic(m.title).base; return; }
+        var split = splitTopic(m.title);
+        if (!split.topic && count > 1 && m.title.indexOf(": ") > 0) {
+          var at = m.title.indexOf(": ");
+          split = { base: m.title.slice(0, at).trim(), topic: m.title.slice(at + 2).trim() };
+        }
+        m.topic = split.topic;
+        m.baseTitle = split.topic ? split.base : m.title;
+      });
+    });
+    return sections;
+  }
+
+  /* The palette is paired with CSS3 colour names because that is the only form
+     iCalendar's COLOR property accepts, so a colour chosen here can travel into
+     the exported calendar rather than being a screen-only decision. */
+  var PALETTE = [
+    { hue: 214, label: "Blue",   ics: "steelblue" },
+    { hue: 158, label: "Teal",   ics: "seagreen" },
+    { hue: 24,  label: "Orange", ics: "chocolate" },
+    { hue: 340, label: "Pink",   ics: "palevioletred" },
+    { hue: 268, label: "Purple", ics: "mediumpurple" },
+    { hue: 96,  label: "Olive",  ics: "olivedrab" },
+    { hue: 4,   label: "Red",    ics: "indianred" },
+    { hue: 190, label: "Cyan",   ics: "cadetblue" },
+    { hue: 44,  label: "Amber",  ics: "goldenrod" },
+    { hue: 306, label: "Violet", ics: "orchid" },
+    { hue: 128, label: "Green",  ics: "mediumseagreen" },
+    { hue: 250, label: "Indigo", ics: "slateblue" }
+  ];
+
+  var COMPONENT_WORDS = {
+    REC: "recitation", LAB: "lab", DIS: "discussion", ACT: "activity",
+    SEM: "seminar", STU: "studio", FLD: "field studies", PRC: "practicum"
+  };
+
+  /* Join each enrolment section to the recitations and labs that go with it.
+     Not every lecture of a course has them -- MATH 22 has three that do and two
+     that don't -- so this has to be read off the rows, not assumed per course. */
+  function linkRelated(sections) {
+    var children = {}, byNumber = {};
+    sections.forEach(function (s) {
+      byNumber[s.term + "|" + s.classNumber] = s;
+      if (!s.relatedTo) return;
+      var key = s.term + "|" + s.relatedTo;
+      (children[key] = children[key] || []).push(s);
+    });
+    sections.forEach(function (s) {
+      var kids = children[s.term + "|" + s.classNumber] || [];
+      s.relatedCount = kids.length;
+      var kinds = {};
+      kids.forEach(function (k) {
+        var word = COMPONENT_WORDS[k.component] || (k.component || "").toLowerCase();
+        if (word) kinds[word] = true;
+      });
+      s.relatedKinds = Object.keys(kinds);
+      s.parent = s.relatedTo ? (byNumber[s.term + "|" + s.relatedTo] || null) : null;
+    });
+    return sections;
+  }
+
+  /* Stable default per course, so a class keeps its colour across reloads. */
+  function paletteIndexFor(courseKey) {
+    var h = 0;
+    for (var i = 0; i < courseKey.length; i++) h = (h * 31 + courseKey.charCodeAt(i)) >>> 0;
+    return h % PALETTE.length;
+  }
+
+  function paletteEntry(courseKey, overrides) {
+    var chosen = overrides && overrides[courseKey];
+    var index = typeof chosen === "number" && PALETTE[chosen] ? chosen : paletteIndexFor(courseKey);
+    return PALETTE[index];
+  }
+
+  function hueFor(courseKey, overrides) {
+    return paletteEntry(courseKey, overrides).hue;
+  }
+
+  function overlaps(a, b) {
+    for (var i = 0; i < a.meetings.length; i++) {
+      for (var j = 0; j < b.meetings.length; j++) {
+        var m = a.meetings[i], n = b.meetings[j];
+        if (m.start < n.end && n.start < m.end) {
+          for (var d = 0; d < m.days.length; d++) {
+            if (n.days.indexOf(m.days[d]) >= 0) return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  var SEASON_ORDER = { winter: 0, spring: 1, summer: 2, fall: 3 };
+
+  /* "Fall 2026" sorts after "Summer 2026", not alphabetically before it. */
+  function termRank(term) {
+    var m = /^([A-Za-z]+)\s+(\d{4})$/.exec((term || "").trim());
+    if (!m) return [9999, 9, term || ""];
+    var season = SEASON_ORDER[m[1].toLowerCase()];
+    return [parseInt(m[2], 10), season === undefined ? 9 : season, term];
+  }
+
+  function sortTerms(terms) {
+    return terms.slice().sort(function (a, b) {
+      var ra = termRank(a), rb = termRank(b);
+      return ra[0] - rb[0] || ra[1] - rb[1] || (ra[2] < rb[2] ? -1 : ra[2] > rb[2] ? 1 : 0);
+    });
+  }
+
+  function findClashes(sections) {
+    var clashing = {}, pairs = [];
+    for (var i = 0; i < sections.length; i++) {
+      for (var j = i + 1; j < sections.length; j++) {
+        // Two classes in different terms never collide, whatever the clock says.
+        if (sections[i].term !== sections[j].term) continue;
+        if (overlaps(sections[i], sections[j])) {
+          clashing[sections[i].id] = true;
+          clashing[sections[j].id] = true;
+          pairs.push([sections[i], sections[j]]);
+        }
+      }
+    }
+    return { ids: clashing, pairs: pairs };
+  }
+
+  function groupCourses(sections) {
+    var byKey = {}, order = [];
+    sections.forEach(function (s) {
+      var courseTitle = s.baseTitle || s.title;
+      if (!byKey[s.courseKey]) { byKey[s.courseKey] = { key: s.courseKey, subject: s.subject, catalog: s.catalog, title: courseTitle, sections: [] }; order.push(s.courseKey); }
+      var c = byKey[s.courseKey];
+      if (!c.title && courseTitle) c.title = courseTitle;
+      c.sections.push(s);
+    });
+    order.sort(function (a, b) {
+      var A = byKey[a], B = byKey[b];
+      if (A.subject !== B.subject) return A.subject < B.subject ? -1 : 1;
+      var na = parseInt(A.catalog, 10), nb = parseInt(B.catalog, 10);
+      if (!isNaN(na) && !isNaN(nb) && na !== nb) return na - nb;
+      if (A.catalog !== B.catalog) return A.catalog < B.catalog ? -1 : 1;
+      return A.key < B.key ? -1 : A.key > B.key ? 1 : 0;
+    });
+    return order.map(function (k) {
+      byKey[k].sections.sort(function (a, b) {
+        if (a.campus !== b.campus) return a.campus < b.campus ? -1 : 1;
+        return a.section < b.section ? -1 : a.section > b.section ? 1 : 0;
+      });
+      return byKey[k];
+    });
+  }
+
+  function filterSections(sections, f) {
+    var terms = (f.q || "").toLowerCase().split(/\s+/).filter(Boolean);
+    return sections.filter(function (s) {
+      if (f.term && s.term !== f.term) return false;
+      if (f.campus && s.campus !== f.campus) return false;
+      if (f.career && s.career !== f.career) return false;
+      if (f.openOnly && !hasSeats(s)) return false;
+      if (f.avoid && f.avoid.length && f.avoid.some(function (c) { return c.id !== s.id && overlaps(c, s); })) return false;
+      for (var i = 0; i < terms.length; i++) {
+        if (s.searchText.indexOf(terms[i]) < 0 && terms[i] !== s.classNumber) return false;
+      }
+      return true;
+    });
+  }
+
+  /* Lay overlapping blocks side by side within a day column. */
+  function layoutDay(blocks) {
+    var sorted = blocks.slice().sort(function (a, b) { return a.start - b.start || a.end - b.end; });
+    var clusters = [], current = [], clusterEnd = -1;
+    sorted.forEach(function (b) {
+      if (current.length && b.start >= clusterEnd) { clusters.push(current); current = []; clusterEnd = -1; }
+      current.push(b);
+      clusterEnd = Math.max(clusterEnd, b.end);
+    });
+    if (current.length) clusters.push(current);
+
+    clusters.forEach(function (cluster) {
+      var columns = [];
+      cluster.forEach(function (b) {
+        var placed = false;
+        for (var c = 0; c < columns.length && !placed; c++) {
+          if (columns[c] <= b.start) { b.column = c; columns[c] = b.end; placed = true; }
+        }
+        if (!placed) { b.column = columns.length; columns.push(b.end); }
+      });
+      cluster.forEach(function (b) { b.columns = columns.length; });
+    });
+    return sorted;
+  }
+
+  function timeSpan(sections, fallbackStart, fallbackEnd) {
+    var min = null, max = null;
+    sections.forEach(function (s) {
+      s.meetings.forEach(function (m) {
+        if (min === null || m.start < min) min = m.start;
+        if (max === null || m.end > max) max = m.end;
+      });
+    });
+    if (min === null) return { start: fallbackStart, end: fallbackEnd };
+    return {
+      start: Math.min(fallbackStart, Math.floor(min / 60) * 60),
+      end: Math.max(fallbackEnd, Math.ceil(max / 60) * 60)
+    };
+  }
+
+  function activeDays(sections) {
+    var used = {};
+    sections.forEach(function (s) {
+      s.meetings.forEach(function (m) { m.days.forEach(function (d) { used[d] = true; }); });
+    });
+    var days = [0, 1, 2, 3, 4];
+    if (used[5]) days.push(5);
+    if (used[6]) days.push(6);
+    return days;
+  }
+
+  var BYDAY = ["MO", "TU", "WE", "TH", "FR", "SA", "SU"];
+
+  function formatStamp(iso) {
+    if (!iso) return "";
+    var when = new Date(iso);
+    if (isNaN(when.getTime())) return "";
+    return when.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  }
+
+  /* Why a section is missing from the week grid, or missing part of itself.
+     A class can meet in person and still carry an online component with no
+     posted time -- that half would otherwise vanish silently. */
+  function unscheduledNote(s) {
+    if (!s.patterns.length) return "no meeting pattern posted";
+    var loose = s.patterns.filter(function (p) { return !p.scheduled; });
+    if (!loose.length) return "";
+    var tags = {};
+    loose.forEach(function (p) { p.asyncTags.forEach(function (t) { tags[t] = true; }); });
+    var what = tags.WEB && tags.APPT ? "online and by appointment"
+      : tags.APPT ? "by appointment"
+      : tags.WEB ? "online"
+      : "unscheduled";
+    return what + (s.meetings.length ? " component, no posted time" : ", no posted time");
+  }
+
+  /* "Alice Smith, Bob Jones" -> "Smith +1", for tiles too narrow for full names. */
+  function shortInstructor(text) {
+    var names = String(text || "").split(",").map(function (n) { return n.trim(); }).filter(Boolean);
+    if (!names.length) return "";
+    var parts = names[0].split(/\s+/);
+    var surname = parts[parts.length - 1] || names[0];
+    return names.length > 1 ? surname + " +" + (names.length - 1) : surname;
+  }
+
+  function meetingSummary(s) {
+    if (!s.meetings.length) return unscheduledNote(s) || "no posted time";
+    return s.meetings.map(function (m) {
+      var days = m.days.map(function (d) { return DAY_SHORT[d].slice(0, 2); }).join("");
+      var where = m.location ? " " + m.location : "";
+      return days + " " + formatMinutes(m.start) + "-" + formatMinutes(m.end) + where;
+    }).join("; ");
+  }
+
+  /* Plain-text list for pasting into a message or a notes app. */
+  function toPlainText(sections) {
+    var terms = {};
+    sections.forEach(function (s) { if (s.term) terms[s.term] = true; });
+    var showTerm = Object.keys(terms).length > 1;
+    return sections.map(function (s) {
+      var parts = [];
+      if (showTerm && s.term) parts.push(s.term);
+      parts.push(s.courseKey + " section " + s.section);
+      parts.push(meetingSummary(s));
+      var extra = unscheduledNote(s);
+      if (extra && s.meetings.length) parts.push(extra);
+      parts.push(s.instructor || "instructor not posted");
+      return parts.join(", ");
+    }).join("\n") + "\n";
+  }
+
+  /* ---- iCalendar ---- */
+
+  function parseDateRange(text) {
+    var m = /(\d{2})\/(\d{2})\/(\d{4})\s*-\s*(\d{2})\/(\d{2})\/(\d{4})/.exec(text || "");
+    if (!m) return null;
+    return {
+      start: new Date(+m[3], +m[1] - 1, +m[2]),
+      end: new Date(+m[6], +m[4] - 1, +m[5])
+    };
+  }
+
+  /* Most sections of a term share the same start and end dates, so the common
+     range is a sound stand-in for a row whose own dates were not scraped. */
+  function termDateRanges(sections) {
+    var tally = {};
+    sections.forEach(function (s) {
+      if (!s.term || !s.dates) return;
+      tally[s.term] = tally[s.term] || {};
+      tally[s.term][s.dates] = (tally[s.term][s.dates] || 0) + 1;
+    });
+    var out = {};
+    Object.keys(tally).forEach(function (term) {
+      var best = null, bestN = 0;
+      Object.keys(tally[term]).forEach(function (text) {
+        if (tally[term][text] > bestN) { bestN = tally[term][text]; best = text; }
+      });
+      var range = parseDateRange(best);
+      if (range) out[term] = range;
+    });
+    return out;
+  }
+
+  function ourDay(date) { return (date.getDay() + 6) % 7; }
+
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+
+  function icsDate(date) {
+    return date.getFullYear() + pad(date.getMonth() + 1) + pad(date.getDate());
+  }
+
+  function icsStamp(date, minutes) {
+    return icsDate(date) + "T" + pad(Math.floor(minutes / 60)) + pad(minutes % 60) + "00";
+  }
+
+  function icsEscape(text) {
+    return String(text || "").replace(/\\/g, "\\\\").replace(/;/g, "\\;")
+      .replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
+  }
+
+  function fold(line) {
+    if (line.length <= 73) return line;
+    var out = line.slice(0, 73), rest = line.slice(73);
+    while (rest.length) { out += "\r\n " + rest.slice(0, 72); rest = rest.slice(72); }
+    return out;
+  }
+
+  var VTIMEZONE = [
+    "BEGIN:VTIMEZONE", "TZID:America/New_York",
+    "BEGIN:DAYLIGHT", "TZOFFSETFROM:-0500", "TZOFFSETTO:-0400", "TZNAME:EDT",
+    "DTSTART:19700308T020000", "RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU", "END:DAYLIGHT",
+    "BEGIN:STANDARD", "TZOFFSETFROM:-0400", "TZOFFSETTO:-0500", "TZNAME:EST",
+    "DTSTART:19701101T020000", "RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU", "END:STANDARD",
+    "END:VTIMEZONE"
+  ];
+
+  /* One VEVENT per meeting pattern, repeating weekly for as many class days as
+     the section's own date range contains. `skip` is an optional map of
+     term -> ["YYYY-MM-DD"] of no-class days, which become EXDATEs. */
+  function buildICS(sections, options) {
+    options = options || {};
+    var colors = options.colors || {};
+    var fallback = options.termRanges || termDateRanges(sections);
+    var skip = options.skip || {};
+    var stampNow = options.now || "20260101T000000Z";
+    var lines = ["BEGIN:VCALENDAR", "VERSION:2.0",
+                 "PRODID:-//Course Cart//LionPath schedule//EN", "CALSCALE:GREGORIAN",
+                 "METHOD:PUBLISH"].concat(VTIMEZONE);
+    var events = 0, excluded = 0, undated = [];
+
+    sections.forEach(function (s) {
+      if (!s.meetings.length) return;
+      var range = parseDateRange(s.dates) || fallback[s.term];
+      if (!range) { undated.push(s.code); return; }
+
+      s.meetings.forEach(function (m, index) {
+        // first class day on or after the section's start date
+        var first = new Date(range.start.getTime());
+        var guard = 0;
+        while (m.days.indexOf(ourDay(first)) < 0 && guard++ < 14) {
+          first.setDate(first.getDate() + 1);
+        }
+        if (first > range.end) return;
+
+        var count = 0, cursor = new Date(first.getTime());
+        while (cursor <= range.end) {
+          if (m.days.indexOf(ourDay(cursor)) >= 0) count++;
+          cursor.setDate(cursor.getDate() + 1);
+        }
+        if (!count) return;
+
+        var title = s.courseKey + "-" + s.section + (s.topic ? " " + s.topic : s.title ? " " + s.title : "");
+        var detail = [];
+        if (s.instructor) detail.push("Instructor: " + s.instructor);
+        detail.push("Class " + s.classNumber);
+        if (s.campus) detail.push(s.campus);
+        if (s.component) detail.push(s.component);
+        var note = unscheduledNote(s);
+        if (note) detail.push("Also: " + note);
+
+        lines.push("BEGIN:VEVENT");
+        lines.push("UID:" + s.term.replace(/\s+/g, "") + "-" + s.classNumber + "-" + index + "@course-cart");
+        lines.push("DTSTAMP:" + stampNow);
+        lines.push("DTSTART;TZID=America/New_York:" + icsStamp(first, m.start));
+        lines.push("DTEND;TZID=America/New_York:" + icsStamp(first, m.end));
+        lines.push("RRULE:FREQ=WEEKLY;COUNT=" + count + ";BYDAY=" +
+                   m.days.map(function (d) { return BYDAY[d]; }).join(","));
+        var offDays = (skip[s.term] || []).filter(function (iso) {
+          var parts = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+          if (!parts) return false;
+          var when = new Date(+parts[1], +parts[2] - 1, +parts[3]);
+          return when >= first && when <= range.end && m.days.indexOf(ourDay(when)) >= 0;
+        });
+        excluded += offDays.length;
+        if (offDays.length) {
+          lines.push("EXDATE;TZID=America/New_York:" + offDays.map(function (iso) {
+            var parts = iso.split("-");
+            return parts[0] + parts[1] + parts[2] + "T" +
+              pad(Math.floor(m.start / 60)) + pad(m.start % 60) + "00";
+          }).join(","));
+        }
+        // RFC 7986. Honoured by some clients and ignored by others, but it costs
+        // nothing and is the only standard way to carry a colour across.
+        lines.push("COLOR:" + paletteEntry(s.colorKey || s.courseKey, colors).ics);
+        lines.push("SUMMARY:" + icsEscape(title));
+        if (m.location) lines.push("LOCATION:" + icsEscape(m.location));
+        lines.push("DESCRIPTION:" + icsEscape(detail.join("\n")));
+        lines.push("END:VEVENT");
+        events++;
+      });
+    });
+
+    lines.push("END:VCALENDAR");
+    return {
+      text: lines.map(fold).join("\r\n") + "\r\n",
+      events: events, excluded: excluded, undated: undated
+    };
+  }
+
+  return {
+    parseCSV: parseCSV,
+    parseSection: parseSection,
+    formatStamp: formatStamp,
+    unscheduledNote: unscheduledNote,
+    shortInstructor: shortInstructor,
+    meetingSummary: meetingSummary,
+    toPlainText: toPlainText,
+    parseDateRange: parseDateRange,
+    termDateRanges: termDateRanges,
+    buildICS: buildICS,
+    splitTopic: splitTopic,
+    annotateTopics: annotateTopics,
+    linkRelated: linkRelated,
+    parsePattern: parsePattern,
+    formatMinutes: formatMinutes,
+    sortTerms: sortTerms,
+    termRank: termRank,
+    statusKind: statusKind,
+    hasSeats: hasSeats,
+    hueFor: hueFor,
+    PALETTE: PALETTE,
+    paletteIndexFor: paletteIndexFor,
+    paletteEntry: paletteEntry,
+    overlaps: overlaps,
+    findClashes: findClashes,
+    groupCourses: groupCourses,
+    filterSections: filterSections,
+    layoutDay: layoutDay,
+    timeSpan: timeSpan,
+    activeDays: activeDays,
+    DAY_SHORT: DAY_SHORT
+  };
+})();
+if (typeof module !== "undefined" && module.exports) module.exports = Core;
+</script>
+
+<script id="ui">
+(function () {
+  "use strict";
+
+  var HOUR_PX = 56;
+  var CODE_LINE_PX = 15;
+  var META_LINE_PX = 12;
+  var BLOCK_PAD_PX = 7;
+  var PREVIEW_LIMIT = 20;
+  var STORE_KEY = "coursecart.v1";
+  var CSV_COLUMNS = [
+    "term","campus","subject","catalog_number","section","class_number","course_title",
+    "component","career","meeting_days","meeting_times","meeting_location","instructor",
+    "seats_available","seats_total","waitlist_available","status","academic_session",
+    "meeting_dates","notes","detail_url"
+  ];
+
+  var $ = function (id) { return document.getElementById(id); };
+  var plural = function (n, one, many) { return n + " " + (n === 1 ? one : (many || one + "s")); };
+  var el = function (tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text !== undefined && text !== null) n.textContent = text;
+    return n;
+  };
+
+  var state = {
+    sections: [],
+    byId: {},
+    files: [],
+    cartIds: [],
+    orphanRecords: {},
+    bundled: [],
+    pendingBundled: [],
+    colors: {},
+    openPalette: "",
+    skipDays: {},
+    calendarLoaded: false,
+    term: "",
+    preview: [],
+    expanded: {},
+    shownCourses: []
+  };
+
+  /* ---------- persistence ---------- */
+
+  function save() {
+    var cartRecords = state.cartIds.map(function (id) {
+      var s = state.byId[id];
+      return s ? s.raw : state.orphanRecords[id];
+    }).filter(Boolean);
+    // Bundled sets ship with the page, so remember only which ones were on.
+    var files = state.files.filter(function (f) { return !f.bundled; })
+      .map(function (f) { return { key: f.key, name: f.name, text: f.text }; });
+    var bundledKeys = state.files.filter(function (f) { return f.bundled; })
+      .map(function (f) { return f.key; });
+    var attempts = [
+      { files: files, bundledKeys: bundledKeys, cartIds: state.cartIds,
+        cartRecords: cartRecords, colors: state.colors },
+      { files: [], bundledKeys: bundledKeys, cartIds: state.cartIds,
+        cartRecords: cartRecords, colors: state.colors }
+    ];
+    for (var i = 0; i < attempts.length; i++) {
+      try { localStorage.setItem(STORE_KEY, JSON.stringify(attempts[i])); return; }
+      catch (e) { /* over quota or storage unavailable -- fall through */ }
+    }
+  }
+
+  function restore() {
+    var raw;
+    try { raw = localStorage.getItem(STORE_KEY); } catch (e) { return; }
+    if (!raw) return;
+    var saved;
+    try { saved = JSON.parse(raw); } catch (e) { return; }
+    if (!saved || typeof saved !== "object") return;
+    (saved.cartRecords || []).forEach(function (rec) {
+      if (!rec || !rec.class_number) return;
+      var s = Core.parseSection(rec);
+      Core.annotateTopics([s]);
+      s.raw = rec;
+      state.orphanRecords[s.id] = rec;
+    });
+    state.cartIds = (saved.cartIds || []).filter(function (id) { return typeof id === "string"; });
+    var colors = saved.colors;
+    if (colors && typeof colors === "object") {
+      Object.keys(colors).forEach(function (key) {
+        if (typeof colors[key] === "number" && Core.PALETTE[colors[key]]) state.colors[key] = colors[key];
+      });
+    }
+    state.pendingBundled = (saved.bundledKeys || []).filter(function (k) { return typeof k === "string"; });
+    var files = (saved.files || []).filter(function (f) { return f && typeof f.text === "string"; });
+    if (files.length) addFiles(files, false);
+  }
+
+  /* ---------- loading ---------- */
+
+  function rebuild(persist) {
+    var seen = {}, sections = [];
+    state.files.forEach(function (f) {
+      var parsed = Core.parseCSV(f.text);
+      if (parsed.headers.indexOf("class_number") < 0) { f.bad = true; return; }
+      f.bad = false;
+      parsed.records.forEach(function (rec) {
+        var s = Core.parseSection(rec);
+        if (!s.classNumber || seen[s.id]) return;
+        seen[s.id] = true;
+        s.raw = rec;
+        sections.push(s);
+      });
+    });
+    Core.annotateTopics(sections);
+    Core.linkRelated(sections);
+    state.sections = sections;
+    state.byId = {};
+    sections.forEach(function (s) { state.byId[s.id] = s; });
+    rebuildFilters();
+    if (persist) save();
+    renderAll();
+  }
+
+  function addFiles(files, persist) {
+    files.forEach(function (f) {
+      if (!f.key) f.key = f.name;
+      var existing = state.files.filter(function (x) { return x.key === f.key; })[0];
+      // Re-loading a name replaces it, so a fresh scrape of the same file wins.
+      if (existing) { existing.text = f.text; existing.name = f.name; }
+      else state.files.push(f);
+    });
+    rebuild(persist !== false);
+  }
+
+  function removeFile(key) {
+    state.files = state.files.filter(function (f) { return f.key !== key; });
+    rebuild(true);
+  }
+
+  function readFiles(fileList) {
+    var pending = Array.prototype.slice.call(fileList);
+    var loaded = [], remaining = pending.length;
+    if (!remaining) return;
+    pending.forEach(function (file) {
+      var reader = new FileReader();
+      reader.onload = function () {
+        loaded.push({ key: file.name, name: file.name, text: String(reader.result) });
+        if (--remaining === 0) addFiles(loaded, true);
+      };
+      reader.onerror = function () {
+        if (--remaining === 0) addFiles(loaded, true);
+      };
+      reader.readAsText(file);
+    });
+  }
+
+  /* ---------- bundled sets ---------- */
+
+  /* Three ways to find CSVs shipped next to this page, in order of preference:
+     an inlined catalogue (works from a file:// page and inside a single-file
+     host), a manifest listing them, or a plain directory index. */
+  function fetchText(url) {
+    return fetch(url, { cache: "no-cache" }).then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status + " for " + url);
+      return r.text();
+    });
+  }
+
+  function prettyName(file) {
+    return file.replace(/\.csv$/i, "").replace(/[-_]+/g, " ").trim();
+  }
+
+  function fromInline() {
+    var list = window.BUNDLED_CSVS;
+    if (!Array.isArray(list) || !list.length) return null;
+    return list.filter(function (s) { return s && s.file; }).map(function (s) {
+      return {
+        key: "bundled:" + s.file, file: s.file,
+        label: s.label || prettyName(s.file),
+        note: s.note || "", text: s.text
+      };
+    });
+  }
+
+  function fromManifest() {
+    return fetchText("data/manifest.json").then(function (text) {
+      var sets = JSON.parse(text);
+      sets = sets.sets || sets.files || sets;
+      if (!Array.isArray(sets)) throw new Error("manifest has no set list");
+      return sets.map(function (s) {
+        var file = typeof s === "string" ? s : s.file;
+        if (!file) throw new Error("manifest entry has no file");
+        return {
+          key: "bundled:" + file, file: file,
+          label: (s && s.label) || prettyName(file),
+          note: (s && s.note) || ""
+        };
+      });
+    });
+  }
+
+  function fromDirectoryIndex() {
+    return fetchText("data/").then(function (html) {
+      var doc = new DOMParser().parseFromString(html, "text/html");
+      var seen = {}, out = [];
+      Array.prototype.forEach.call(doc.querySelectorAll("a[href]"), function (a) {
+        var href = a.getAttribute("href") || "";
+        if (!/\.csv$/i.test(href)) return;
+        var file = decodeURIComponent(href.split("/").pop().split("?")[0]);
+        if (seen[file]) return;
+        seen[file] = true;
+        out.push({ key: "bundled:" + file, file: file, label: prettyName(file), note: "" });
+      });
+      if (!out.length) throw new Error("no CSVs in the directory index");
+      return out;
+    });
+  }
+
+  function discoverBundled() {
+    var inline = fromInline();
+    if (inline) return Promise.resolve(inline);
+    if (typeof fetch !== "function") return Promise.resolve([]);
+    // Starting from a resolved promise turns a synchronous throw in any of
+    // these into a rejection, so one failing source falls through to the next.
+    return Promise.resolve()
+      .then(fromManifest)
+      .catch(fromDirectoryIndex)
+      .catch(function () { return []; });
+  }
+
+  function bundledText(entry) {
+    if (typeof entry.text === "string") return Promise.resolve(entry.text);
+    return fetchText("data/" + entry.file);
+  }
+
+  function setBundled(entry, on, checkbox) {
+    if (!on) { removeFile(entry.key); renderPicker(); return; }
+    if (checkbox) checkbox.disabled = true;
+    bundledText(entry).then(function (text) {
+      entry.text = text;
+      addFiles([{ key: entry.key, name: entry.file, text: text, bundled: true }], true);
+      renderPicker();
+    }, function (err) {
+      entry.error = err && err.message ? err.message : "could not be read";
+      if (checkbox) checkbox.checked = false;
+      renderPicker();
+    }).then(function () { if (checkbox) checkbox.disabled = false; });
+  }
+
+  function renderPicker() {
+    var picker = $("picker"), panel = $("pickerPanel");
+    picker.hidden = state.bundled.length === 0;
+    if (picker.hidden) return;
+
+    var loaded = state.bundled.filter(function (e) {
+      return state.files.some(function (f) { return f.key === e.key; });
+    }).length;
+    $("pickerSummary").textContent = loaded ? "Bundled sets (" + loaded + ")" : "Bundled sets";
+
+    panel.textContent = "";
+    state.bundled.forEach(function (entry) {
+      var on = state.files.some(function (f) { return f.key === entry.key; });
+      var item = el("label", "picker-item");
+      var box = el("input");
+      box.type = "checkbox";
+      box.checked = on;
+      box.addEventListener("change", function () { setBundled(entry, box.checked, box); });
+      item.appendChild(box);
+      var body = el("div");
+      body.appendChild(el("span", "name", entry.label));
+      if (entry.error) body.appendChild(el("span", "meta", entry.error));
+      else if (entry.note) body.appendChild(el("span", "meta", entry.note));
+      else body.appendChild(el("span", "meta", entry.file));
+      item.appendChild(body);
+      panel.appendChild(item);
+    });
+  }
+
+  /* Optional: no-class days per term, so recurring calendar events skip breaks.
+     Nothing is invented -- without this file the events simply run straight
+     through, and the export says so. */
+  function loadAcademicCalendar() {
+    function accept(data) {
+      var terms = (data && data.terms) || {};
+      var out = {};
+      Object.keys(terms).forEach(function (term) {
+        var days = terms[term] && terms[term].noClassDates;
+        if (Array.isArray(days)) out[term] = days.filter(function (d) { return /^\d{4}-\d{2}-\d{2}$/.test(d); });
+      });
+      if (Object.keys(out).length) {
+        state.skipDays = out;
+        state.calendarLoaded = true;
+      }
+    }
+    if (window.ACADEMIC_CALENDAR) { accept(window.ACADEMIC_CALENDAR); return Promise.resolve(); }
+    if (typeof fetch !== "function") return Promise.resolve();
+    return fetchText("data/academic-calendar.json")
+      .then(function (text) { accept(JSON.parse(text)); })
+      .catch(function () { /* no calendar shipped */ });
+  }
+
+  function initBundled() {
+    return discoverBundled().then(function (sets) {
+      state.bundled = sets;
+      renderPicker();
+      // Re-load whatever was ticked last time.
+      var wanted = state.pendingBundled;
+      state.pendingBundled = [];
+      sets.filter(function (e) { return wanted.indexOf(e.key) >= 0; })
+        .forEach(function (e) { setBundled(e, true, null); });
+    }).catch(function () {
+      state.bundled = [];
+      renderPicker();
+    });
+  }
+
+  /* ---------- filters ---------- */
+
+  function optionsFor(key) {
+    var set = {};
+    state.sections.forEach(function (s) { if (s[key]) set[s[key]] = true; });
+    return Object.keys(set).sort();
+  }
+
+  function fillSelect(select, values, label) {
+    var keep = select.value;
+    select.textContent = "";
+    select.appendChild(new Option(label, ""));
+    values.forEach(function (v) { select.appendChild(new Option(v, v)); });
+    if (values.indexOf(keep) >= 0) select.value = keep;
+  }
+
+  function rebuildFilters() {
+    fillSelect($("fCampus"), optionsFor("campus"), "All campuses");
+    fillSelect($("fCareer"), optionsFor("career"), "All careers");
+    var terms = Core.sortTerms(optionsFor("term"));
+    $("termField").hidden = terms.length === 0;
+    if (terms.indexOf(state.term) < 0) state.term = terms[0] || "";
+    var select = $("fTerm");
+    select.textContent = "";
+    terms.forEach(function (t) { select.appendChild(new Option(t, t)); });
+    select.value = state.term;
+  }
+
+  function currentFilters() {
+    return {
+      q: $("q").value.trim(),
+      campus: $("fCampus").value,
+      career: $("fCareer").value,
+      term: state.term,
+      openOnly: $("fOpen").checked,
+      // Only this semester's cart can conflict with this semester's results.
+      avoid: $("fNoClash").checked ? inTerm(cartSections(), state.term) : null
+    };
+  }
+
+  function cartSections() {
+    return state.cartIds.map(function (id) { return state.byId[id]; }).filter(Boolean);
+  }
+
+  function cartTerms() {
+    var seen = {};
+    cartSections().forEach(function (s) { if (s.term) seen[s.term] = true; });
+    return Core.sortTerms(Object.keys(seen));
+  }
+
+  function inTerm(sections, term) {
+    return sections.filter(function (s) { return !term || s.term === term; });
+  }
+
+  /* Terms worth offering on the grid: whatever is loaded, plus anything in the
+     cart, so a term you saved earlier never disappears from the switcher. */
+  function boardTerms() {
+    var seen = {};
+    state.sections.forEach(function (s) { if (s.term) seen[s.term] = true; });
+    cartSections().forEach(function (s) { if (s.term) seen[s.term] = true; });
+    return Core.sortTerms(Object.keys(seen));
+  }
+
+  function setTerm(term) {
+    if (state.term === term) return;
+    state.term = term;
+    $("fTerm").value = term;
+    state.preview = [];
+    renderAll();
+  }
+
+  /* ---------- rendering: results ---------- */
+
+  function seatText(s) {
+    if (s.seatsTotal === null) return "";
+    return s.seatsAvailable + " / " + s.seatsTotal + " seats";
+  }
+
+  function statusLabel(s) {
+    var kind = Core.statusKind(s);
+    if (kind === "open") return "Open";
+    if (kind === "wait") return "Wait list";
+    if (kind === "closed") return "Closed";
+    return "Unposted";
+  }
+
+  function meetingLines(s) {
+    var wrap = el("div", "sec-when");
+    if (!s.patterns.length) {
+      wrap.appendChild(el("div", "async", "No meeting pattern listed"));
+      return wrap;
+    }
+    s.patterns.forEach(function (p) {
+      var line = el("div");
+      if (p.scheduled) {
+        var days = p.days.map(function (d) { return Core.DAY_SHORT[d].slice(0, 2); }).join(" ");
+        line.appendChild(el("span", "pattern", days + "  " + Core.formatMinutes(p.start) + "-" + Core.formatMinutes(p.end)));
+        if (p.location) line.appendChild(el("span", "where", "  ·  " + p.location));
+      } else {
+        var tag = p.asyncTags.indexOf("APPT") >= 0 ? "By appointment" : "Online, no set time";
+        line.appendChild(el("span", "async", tag));
+        if (p.location) line.appendChild(el("span", "where", "  ·  " + p.location));
+      }
+      wrap.appendChild(line);
+    });
+    return wrap;
+  }
+
+  function sectionRow(s) {
+    var row = el("div", "section");
+    row.style.setProperty("--h", hueOf(s));
+    if (state.cartIds.indexOf(s.id) >= 0) row.classList.add("in-cart");
+
+    var id = el("div", "sec-id");
+    id.appendChild(document.createTextNode(s.section + (s.component ? " " + s.component : "")));
+    id.appendChild(el("span", "nbr", "#" + s.classNumber));
+    if (s.campus) id.appendChild(el("span", "nbr", s.campus));
+    row.appendChild(id);
+
+    var middle = el("div");
+    if (s.topic) middle.appendChild(el("div", "sec-topic", s.topic));
+    middle.appendChild(meetingLines(s));
+    if (s.relatedCount) {
+      middle.appendChild(el("div", "sec-plus",
+        "plus " + (s.relatedKinds.join(" and ") || "a second component") +
+        (s.relatedCount > 1 ? " (" + s.relatedCount + " options)" : "")));
+    } else if (s.parent) {
+      middle.appendChild(el("div", "sec-plus", "goes with " + s.parent.code));
+    }
+    row.appendChild(middle);
+
+    var who = el("div", "sec-who");
+    if (s.instructor) who.textContent = s.instructor;
+    else who.appendChild(el("span", "none", "Instructor not posted"));
+    row.appendChild(who);
+
+    var act = el("div", "sec-act");
+    var inCart = state.cartIds.indexOf(s.id) >= 0;
+    var btn = el("button", "btn" + (inCart ? "" : " btn-primary"), inCart ? "Remove" : "Add");
+    btn.addEventListener("click", function () { toggleCart(s.id); });
+    act.appendChild(btn);
+    var pill = el("span", "pill " + Core.statusKind(s), statusLabel(s));
+    act.appendChild(pill);
+    var seats = seatText(s);
+    if (seats) act.appendChild(el("span", "seats", seats));
+    if (s.waitlist && Core.statusKind(s) !== "wait") act.appendChild(el("span", "seats", "wait list open"));
+    // Seat counts go stale, so say when they were read.
+    var stamp = seats ? Core.formatStamp(s.retrievedAt) : "";
+    if (stamp) act.appendChild(el("span", "seats stamp", "last updated " + stamp));
+    row.appendChild(act);
+
+    row.addEventListener("mouseenter", function () { setPreview([s]); });
+    row.addEventListener("mouseleave", function () { setPreview([]); });
+    row.addEventListener("focusin", function () { setPreview([s]); });
+    return row;
+  }
+
+  function setAllExpanded(open) {
+    (state.shownCourses || []).forEach(function (key) { state.expanded[key] = open; });
+    renderResults();
+  }
+
+  function renderResults() {
+    var host = $("results");
+    host.textContent = "";
+
+    if (!state.sections.length) {
+      host.appendChild(emptyState());
+      $("resultCount").textContent = "";
+      return;
+    }
+
+    var matches = Core.filterSections(state.sections, currentFilters());
+    var courses = Core.groupCourses(matches);
+    $("resultCount").textContent = plural(matches.length, "section") + " in " + plural(courses.length, "course");
+
+    if (!courses.length) {
+      var none = el("div", "empty");
+      none.appendChild(el("h2", null, "Nothing matches"));
+      none.appendChild(el("p", null, "Try a shorter search, or clear a filter."));
+      host.appendChild(none);
+      return;
+    }
+
+    state.shownCourses = courses.map(function (c) { return c.key; });
+
+    courses.forEach(function (course) {
+      var box = el("details", "course");
+      // Nothing opens by default: hovering the header draws the sections on the
+      // grid, which answers "does this fit my week" faster than reading a list.
+      box.open = state.expanded[course.key] === true;
+      box.addEventListener("toggle", function () { state.expanded[course.key] = box.open; });
+
+      var head = el("summary", "course-head");
+      var code = el("span", "course-code");
+      code.appendChild(el("span", "chev", "› "));
+      code.appendChild(document.createTextNode(course.key));
+      head.appendChild(code);
+      head.appendChild(el("span", "course-title", course.title));
+      var campuses = {};
+      course.sections.forEach(function (s) { if (s.campus) campuses[s.campus] = true; });
+      var nCampus = Object.keys(campuses).length;
+      head.appendChild(el("span", "course-meta",
+        plural(course.sections.length, "section") +
+        (nCampus > 1 ? " · " + nCampus + " campuses" : "")));
+      var preview = course.sections.slice(0, PREVIEW_LIMIT);
+      head.addEventListener("mouseenter", function () { setPreview(preview); });
+      head.addEventListener("mouseleave", function () { setPreview([]); });
+      head.addEventListener("focus", function () { setPreview(preview); });
+      head.addEventListener("blur", function () { setPreview([]); });
+      if (course.sections.length > PREVIEW_LIMIT) {
+        head.title = "Hover previews the first " + PREVIEW_LIMIT + " of " +
+          course.sections.length + " sections";
+      }
+      box.appendChild(head);
+
+      var list = el("div", "sections");
+      course.sections.forEach(function (s) { list.appendChild(sectionRow(s)); });
+      box.appendChild(list);
+      host.appendChild(box);
+    });
+  }
+
+  function emptyState() {
+    var box = el("div", "empty");
+    box.appendChild(el("h2", null, "Load a CSV to start"));
+    box.appendChild(el("p", null,
+      "This reads the files the LionPath scraper writes. Drop them anywhere on this page, or use Load CSV above."));
+    box.appendChild(el("p", null, "Generate one like this:"));
+    var pre = el("pre", null,
+      ".venv/bin/python scrape.py \\\n" +
+      "    --subject CMPSC MATH \\\n" +
+      "    --campus \"University Park\" \\\n" +
+      "    --instructors \\\n" +
+      "    -o fall26.csv");
+    box.appendChild(pre);
+    box.appendChild(el("p", "muted",
+      "Run it with --instructors so sections carry instructor names, meeting dates and seat counts. " +
+      "You can load several files at once; duplicate classes are merged."));
+    return box;
+  }
+
+  /* ---------- rendering: calendar ---------- */
+
+  function blocksFor(sections, kind) {
+    var out = [];
+    sections.forEach(function (s) {
+      s.meetings.forEach(function (m) {
+        m.days.forEach(function (d) {
+          out.push({ day: d, start: m.start, end: m.end, section: s, meeting: m, kind: kind });
+        });
+      });
+    });
+    return out;
+  }
+
+  function renderTermTabs() {
+    var host = $("termTabs");
+    host.textContent = "";
+    var terms = boardTerms();
+    if (terms.length < 2) return;
+    terms.forEach(function (term) {
+      var tab = el("button", "termtab" + (term === state.term ? " on" : ""), term);
+      tab.type = "button";
+      tab.setAttribute("aria-pressed", term === state.term ? "true" : "false");
+      tab.addEventListener("click", function () { setTerm(term); });
+      host.appendChild(tab);
+    });
+  }
+
+  function renderCalendar() {
+    var host = $("calendar");
+    host.textContent = "";
+    renderTermTabs();
+
+    var cart = inTerm(cartSections(), state.term);
+    var shown = cart.slice();
+    previewSections().forEach(function (s) {
+      if (s.term === state.term && state.cartIds.indexOf(s.id) < 0) shown.push(s);
+    });
+
+    var days = Core.activeDays(shown);
+    var span = Core.timeSpan(shown, 8 * 60, 21 * 60);
+    var startHour = Math.floor(span.start / 60), endHour = Math.ceil(span.end / 60);
+    var total = (endHour - startHour) * 60;
+    var heightPx = (endHour - startHour) * HOUR_PX;
+
+    var previewing = previewSections().filter(function (s) { return s.term === state.term; }).length;
+    $("calHint").textContent = previewing
+      ? "previewing " + plural(previewing, "section")
+      : cart.length ? plural(cart.length, "section") : "hover a result to preview";
+
+    var grid = el("div", "cal-grid");
+    grid.style.setProperty("--days", days.length);
+    grid.appendChild(el("div", "cal-corner"));
+    days.forEach(function (d) { grid.appendChild(el("div", "cal-daylabel", Core.DAY_SHORT[d])); });
+
+    var gutter = el("div", "cal-gutter");
+    gutter.style.height = heightPx + "px";
+    for (var h = startHour; h <= endHour; h++) {
+      var label = el("div", "cal-hour", Core.formatMinutes(h * 60).replace(":00", ""));
+      if (h === startHour) label.classList.add("edge-first");
+      if (h === endHour) label.classList.add("edge-last");
+      label.style.top = ((h - startHour) * 60 / total * 100) + "%";
+      gutter.appendChild(label);
+    }
+    grid.appendChild(gutter);
+
+    var clashes = Core.findClashes(cart);
+
+    days.forEach(function (d) {
+      var col = el("div", "cal-col");
+      col.style.height = heightPx + "px";
+      for (var h = startHour; h <= endHour; h++) {
+        var rule = el("div", "cal-rule");
+        rule.style.top = ((h - startHour) * 60 / total * 100) + "%";
+        col.appendChild(rule);
+        if (h < endHour) {
+          var half = el("div", "cal-rule half");
+          half.style.top = ((h - startHour) * 60 + 30) / total * 100 + "%";
+          col.appendChild(half);
+        }
+      }
+
+      var dayBlocks = blocksFor(shown, null).filter(function (b) { return b.day === d; });
+      var previewIds = {};
+      previewSections().forEach(function (s) {
+        if (state.cartIds.indexOf(s.id) < 0) previewIds[s.id] = true;
+      });
+      dayBlocks.forEach(function (b) { b.kind = previewIds[b.section.id] ? "preview" : "cart"; });
+      Core.layoutDay(dayBlocks).forEach(function (b) {
+        var node = el("div", "blk" + (b.kind === "preview" ? " preview" : ""));
+        node.style.setProperty("--h", hueOf(b.section));
+        node.style.top = ((b.start - startHour * 60) / total * 100) + "%";
+        node.style.height = ((b.end - b.start) / total * 100) + "%";
+        var cols = b.columns || 1, colIndex = b.column || 0;
+        node.style.left = "calc(" + (colIndex / cols * 100) + "% + 2px)";
+        node.style.width = "calc(" + (100 / cols) + "% - 4px)";
+        if (clashes.ids[b.section.id] && b.kind !== "preview") node.classList.add("clash");
+
+        // Fit the text to the tile rather than hiding it wholesale: how many
+        // lines fit follows from the height, how much each line says from the
+        // width once overlapping sections share the column.
+        var px = (b.end - b.start) / total * heightPx;
+        var capacity = Math.max(0, Math.floor((px - CODE_LINE_PX - BLOCK_PAD_PX) / META_LINE_PX));
+
+        // Even a few pixels get the catalogue number, cut off mid-character. A
+        // blank band reads as a rendering fault; a clipped "14" reads as a class.
+        node.appendChild(el("span", "code",
+          cols > 2 ? b.section.catalog : b.section.courseKey));
+        if (cols >= 4) node.classList.add("tight");
+
+        // What each line can usefully say narrows with the tile. The start time is
+        // roughly readable from the row itself, so when space runs short the room
+        // and the name keep it -- those are the things the grid cannot imply.
+        var extras = [];
+        var where = b.meeting.location;
+        var who = b.section.instructor;
+        if (cols === 1) {
+          if (capacity >= 3) {
+            extras.push(Core.formatMinutes(b.start));
+            if (where) extras.push(where);
+          } else if (where) {
+            extras.push(where);
+          } else {
+            extras.push(Core.formatMinutes(b.start));
+          }
+          if (who) extras.push(who);
+        } else if (cols === 2) {
+          extras.push(where || Core.formatMinutes(b.start));
+          if (who) extras.push(Core.shortInstructor(who));
+        } else if (cols === 3) {
+          if (who) extras.push(Core.shortInstructor(who));
+          else if (where) extras.push(where);
+        }
+        extras.slice(0, capacity).forEach(function (text) {
+          node.appendChild(el("span", "meta", text));
+        });
+        node.title = b.section.code + "  " + b.section.title + "\n" +
+          Core.formatMinutes(b.start) + " - " + Core.formatMinutes(b.end) +
+          (b.meeting.location ? "\n" + b.meeting.location : "") +
+          (b.section.instructor ? "\n" + b.section.instructor : "");
+        col.appendChild(node);
+      });
+      grid.appendChild(col);
+    });
+
+    host.appendChild(grid);
+
+    var note = $("clashNote");
+    note.textContent = "";
+    if (clashes.pairs.length) {
+      var lines = clashes.pairs.map(function (p) { return p[0].code + " and " + p[1].code; });
+      note.appendChild(el("div", "clash-note",
+        (lines.length === 1 ? "Time conflict: " : "Time conflicts: ") + lines.join("; ")));
+    }
+  }
+
+  function renderAsync() {
+    var entries = inTerm(cartSections(), state.term).map(function (s) {
+      return { section: s, preview: false };
+    });
+    previewSections().forEach(function (s) {
+      if (s.term === state.term && state.cartIds.indexOf(s.id) < 0) {
+        entries.push({ section: s, preview: true });
+      }
+    });
+
+    // Anything the grid cannot show in full: fully online sections, and classes
+    // that meet in person but also carry an online component with no set time.
+    var loose = [];
+    entries.forEach(function (entry) {
+      var note = Core.unscheduledNote(entry.section);
+      if (note) loose.push({ section: entry.section, note: note, preview: entry.preview });
+    });
+
+    $("asyncSection").hidden = loose.length === 0;
+    var inCart = loose.filter(function (e) { return !e.preview; }).length;
+    $("asyncCount").textContent = loose.length
+      ? (inCart ? plural(inCart, "class") + " to schedule yourself" : "") +
+        (inCart && loose.length > inCart ? " \u00b7 " : "") +
+        (loose.length > inCart ? plural(loose.length - inCart, "preview") : "")
+      : "";
+    var host = $("asyncList");
+    host.textContent = "";
+    loose.forEach(function (entry) {
+      var item = el("div", "offgrid" + (entry.preview ? " preview" : ""));
+      item.style.setProperty("--h", hueOf(entry.section));
+      item.appendChild(el("span", "swatch"));
+      var body = el("div");
+      body.appendChild(el("span", "lbl", entry.section.code));
+      body.appendChild(el("span", "sub", entry.note));
+      item.appendChild(body);
+      host.appendChild(item);
+    });
+  }
+
+  function cartItem(s, clashes) {
+    var item = el("div", "cart-item" + (clashes.ids[s.id] ? " clash" : ""));
+    item.style.setProperty("--h", hueOf(s));
+
+    var bar = el("button", "bar");
+    bar.type = "button";
+    bar.title = "Change colour for " + (s.colorKey || s.courseKey);
+    bar.setAttribute("aria-label", "Change colour for " + (s.colorKey || s.courseKey));
+    bar.setAttribute("aria-expanded", state.openPalette === (s.colorKey || s.courseKey) ? "true" : "false");
+    bar.addEventListener("click", function () {
+      var key = s.colorKey || s.courseKey;
+      state.openPalette = state.openPalette === key ? "" : key;
+      renderCart();
+    });
+    item.appendChild(bar);
+
+    var body = el("div");
+    body.appendChild(el("div", "code", s.code));
+    body.appendChild(el("div", "line", s.topic ? (s.baseTitle || "") + ": " + s.topic : s.title));
+    var when = el("div", "line");
+    if (s.meetings.length) {
+      when.appendChild(el("span", "mono", s.meetings.map(function (m) {
+        return m.days.map(function (d) { return Core.DAY_SHORT[d].slice(0, 2); }).join("") +
+          " " + Core.formatMinutes(m.start);
+      }).join("  /  ")));
+    } else {
+      when.appendChild(el("span", null, "No set meeting time"));
+    }
+    if (s.instructor) when.appendChild(document.createTextNode("  \u00b7  " + s.instructor));
+    body.appendChild(when);
+    item.appendChild(body);
+
+    var remove = el("button", "btn btn-quiet", "Remove");
+    remove.setAttribute("aria-label", "Remove " + s.code + " from cart");
+    remove.addEventListener("click", function () { toggleCart(s.id); });
+    item.appendChild(remove);
+
+    if (state.openPalette === (s.colorKey || s.courseKey)) {
+      item.appendChild(palette(s.colorKey || s.courseKey));
+    }
+    return item;
+  }
+
+  function palette(courseKey) {
+    var wrap = el("div", "palette");
+    wrap.appendChild(el("span", "palette-label", courseKey));
+    Core.PALETTE.forEach(function (entry, index) {
+      var current = state.colors[courseKey];
+      var isOn = current === undefined
+        ? index === Core.paletteIndexFor(courseKey)
+        : current === index;
+      var swatch = el("button", "swatch-btn" + (isOn ? " on" : ""));
+      swatch.type = "button";
+      swatch.style.setProperty("--h", entry.hue);
+      swatch.title = entry.label;
+      swatch.setAttribute("aria-label", entry.label);
+      swatch.addEventListener("click", function () { setColor(courseKey, index); });
+      wrap.appendChild(swatch);
+    });
+    if (state.colors[courseKey] !== undefined) {
+      var reset = el("button", "btn btn-quiet palette-reset", "Reset");
+      reset.type = "button";
+      reset.addEventListener("click", function () { setColor(courseKey, null); });
+      wrap.appendChild(reset);
+    }
+    return wrap;
+  }
+
+  function renderCart() {
+    var host = $("cartList");
+    host.textContent = "";
+    var cart = cartSections();
+    var missing = state.cartIds.length - cart.length;
+
+    $("cartCount").textContent = plural(cart.length, "section");
+    $("copyCart").disabled = !cart.length;
+    $("saveCart").disabled = !cart.length;
+    $("saveIcs").disabled = !cart.length;
+
+    if (!cart.length) {
+      host.appendChild(el("p", "muted", "Nothing added yet. Use Add on any section."));
+      return;
+    }
+
+    var clashes = Core.findClashes(cart);
+    var terms = cartTerms();
+
+    // One block per semester: a cart that mixes terms is a schedule you can't read.
+    terms.forEach(function (term) {
+      var members = inTerm(cart, term);
+      var group = el("div", "cart-term" + (term === state.term ? " on" : ""));
+      var head = el("button", "cart-term-head");
+      head.type = "button";
+      head.appendChild(el("span", "name", term || "No term"));
+      head.appendChild(el("span", "count", plural(members.length, "section")));
+      head.setAttribute("aria-label", "Show " + term + " on the grid");
+      head.addEventListener("click", function () { setTerm(term); });
+      group.appendChild(head);
+      members.forEach(function (s) { group.appendChild(cartItem(s, clashes)); });
+      host.appendChild(group);
+    });
+
+    if (missing > 0) {
+      host.appendChild(el("p", "muted",
+        plural(missing, "saved section") + (missing === 1 ? " is" : " are") +
+        " not in the loaded CSVs, so " + (missing === 1 ? "it is" : "they are") + " hidden."));
+    }
+  }
+
+  function renderAll() {
+    renderResults();
+    renderCalendar();
+    renderAsync();
+    renderCart();
+    var n = state.sections.length;
+    $("tally").textContent = n
+      ? plural(n, "class", "classes") + " from " + plural(state.files.length, "file")
+      : "No classes loaded";
+    $("clearData").hidden = !n && !state.cartIds.length;
+  }
+
+  /* ---------- actions ---------- */
+
+  function hueOf(section) { return Core.hueFor(section.colorKey || section.courseKey, state.colors); }
+
+  function setColor(courseKey, index) {
+    if (index === null) delete state.colors[courseKey];
+    else state.colors[courseKey] = index;
+    state.openPalette = "";
+    save();
+    renderAll();
+  }
+
+  function previewSections() { return state.preview; }
+
+  function setPreview(sections) {
+    var next = sections || [];
+    var same = next.length === state.preview.length && next.every(function (s, i) {
+      return state.preview[i] && state.preview[i].id === s.id;
+    });
+    if (same) return;
+    state.preview = next;
+    renderCalendar();
+    renderAsync();
+  }
+
+  function toggleCart(id) {
+    var at = state.cartIds.indexOf(id);
+    if (at >= 0) state.cartIds.splice(at, 1);
+    else state.cartIds.push(id);
+    save();
+    renderAll();
+  }
+
+  function sortedCart() {
+    return cartSections().slice().sort(function (a, b) {
+      if (a.subject !== b.subject) return a.subject < b.subject ? -1 : 1;
+      var na = parseInt(a.catalog, 10), nb = parseInt(b.catalog, 10);
+      if (!isNaN(na) && !isNaN(nb) && na !== nb) return na - nb;
+      return a.section < b.section ? -1 : a.section > b.section ? 1 : 0;
+    });
+  }
+
+  function cartICS() {
+    return Core.buildICS(sortedCart(), {
+      colors: state.colors,
+      skip: state.skipDays,
+      termRanges: Core.termDateRanges(state.sections),
+      now: new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d+/, "")
+    });
+  }
+
+  function cartCSV() {
+    var esc = function (v) {
+      v = v === undefined || v === null ? "" : String(v);
+      return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+    };
+    var lines = [CSV_COLUMNS.join(",")];
+    cartSections().forEach(function (s) {
+      lines.push(CSV_COLUMNS.map(function (c) { return esc(s.raw ? s.raw[c] : ""); }).join(","));
+    });
+    return lines.join("\n") + "\n";
+  }
+
+  function say(message) {
+    var note = $("exportNote");
+    note.textContent = message || "";
+    note.hidden = !message;
+  }
+
+  function flash(button, message) {
+    var original = button.textContent;
+    button.textContent = message;
+    setTimeout(function () { button.textContent = original; }, 1400);
+  }
+
+  /* ---------- wiring ---------- */
+
+  ["q", "fCampus", "fCareer", "fOpen", "fNoClash"].forEach(function (id) {
+    var node = $(id);
+    node.addEventListener("input", renderResults);
+    node.addEventListener("change", renderResults);
+  });
+
+  $("fTerm").addEventListener("change", function () { setTerm($("fTerm").value); });
+
+  $("expandAll").addEventListener("click", function () { setAllExpanded(true); });
+  $("collapseAll").addEventListener("click", function () { setAllExpanded(false); });
+
+  $("csvInput").addEventListener("change", function (e) {
+    readFiles(e.target.files);
+    e.target.value = "";
+  });
+
+  $("clearData").addEventListener("click", function () {
+    state.sections = []; state.byId = {}; state.files = [];
+    state.cartIds = []; state.orphanRecords = {}; state.preview = []; state.expanded = {};
+    state.colors = {}; state.openPalette = "";
+    try { localStorage.removeItem(STORE_KEY); } catch (e) { /* nothing to clear */ }
+    rebuildFilters();
+    renderAll();
+    renderPicker();
+  });
+
+  $("emptyCart").addEventListener("click", function () {
+    state.cartIds = [];
+    save();
+    renderAll();
+  });
+
+  $("copyCart").addEventListener("click", function () {
+    var text = Core.toPlainText(sortedCart()), button = $("copyCart");
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(
+        function () { flash(button, "Copied"); },
+        function () { flash(button, "Copy blocked"); }
+      );
+    } else {
+      flash(button, "Copy blocked");
+    }
+  });
+
+  /* Saving a file works two different ways depending on where this page is
+     opened. From a local file or an ordinary web server a blob link is fine.
+     Inside the claude.ai artifact viewer the frame may not download at all, so
+     the host mediates it -- and hides the button when it cannot. */
+  var downloads = null;
+  var hosted = !!(window.claude && typeof window.claude.use === "function");
+
+  function saveViaHost(text, button, filename, mime) {
+    return downloads.save({ filename: filename, data: text }).then(
+      function () { flash(button, "Saved"); },
+      function (err) {
+        var code = err && err.code;
+        if (code === "declined") return;
+        // .ics and .csv are not always allowed through; plain text always is.
+        if (code === "extension_not_enabled" || code === "rejected_extension") {
+          var plain = filename.replace(/\.[^.]+$/, "") + ".txt";
+          return downloads.save({ filename: plain, data: text }).then(
+            function () { flash(button, "Saved as .txt"); },
+            function () { flash(button, "Save blocked"); }
+          );
+        }
+        flash(button, "Save blocked");
+      }
+    );
+  }
+
+  function saveViaBlob(text, filename, mime, button) {
+    try {
+      var url = URL.createObjectURL(new Blob([text], { type: mime }));
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    } catch (e) {
+      if (button) flash(button, "Save blocked");
+    }
+  }
+
+  $("saveCart").addEventListener("click", function () {
+    var text = cartCSV();
+    if (downloads) saveViaHost(text, $("saveCart"), "cart.csv", "text/csv");
+    else if (!hosted) saveViaBlob(text, "cart.csv", "text/csv", $("saveCart"));
+  });
+
+  $("saveIcs").addEventListener("click", function () {
+    var built = cartICS(), button = $("saveIcs");
+    if (!built.events) { flash(button, "Nothing to add"); return; }
+
+    // Say what the file contains before handing it over, so the report survives
+    // a save the browser refuses.
+    var messages = [];
+    if (built.undated.length) {
+      messages.push("No term dates for " + built.undated.join(", ") + ", so " +
+                    (built.undated.length === 1 ? "it is" : "they are") + " not in the calendar.");
+    }
+    if (!state.calendarLoaded) {
+      messages.push("Term breaks are not excluded: run fetch_calendar.py to add data/academic-calendar.json.");
+    } else if (built.excluded) {
+      messages.push(plural(built.excluded, "class meeting") + " skipped for term breaks.");
+    }
+    say(messages.join(" "));
+
+    if (downloads) saveViaHost(built.text, button, "schedule.ics", "text/calendar");
+    else if (!hosted) saveViaBlob(built.text, "schedule.ics", "text/calendar", button);
+  });
+
+  if (hosted) {
+    // Don't offer the button until the host confirms it can actually save.
+    $("saveCart").hidden = true;
+    $("saveIcs").hidden = true;
+    window.claude.use("downloads").then(function (api) {
+      downloads = api;
+      $("saveCart").hidden = !api;
+      $("saveIcs").hidden = !api;
+    }, function () { /* leave them hidden */ });
+  }
+
+  var dropzone = $("dropzone"), dragDepth = 0;
+  window.addEventListener("dragenter", function (e) {
+    e.preventDefault(); dragDepth++; dropzone.classList.add("on");
+  });
+  window.addEventListener("dragover", function (e) { e.preventDefault(); });
+  window.addEventListener("dragleave", function (e) {
+    e.preventDefault(); if (--dragDepth <= 0) { dragDepth = 0; dropzone.classList.remove("on"); }
+  });
+  window.addEventListener("drop", function (e) {
+    e.preventDefault(); dragDepth = 0; dropzone.classList.remove("on");
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) readFiles(e.dataTransfer.files);
+  });
+
+  try {
+    restore();
+  } catch (e) {
+    // Saved state we can't read is not worth losing the whole page over.
+    state.sections = []; state.byId = {}; state.files = []; state.cartIds = [];
+    try { localStorage.removeItem(STORE_KEY); } catch (e2) { /* storage unavailable */ }
+  }
+  renderAll();
+  initBundled();
+  loadAcademicCalendar();
+
+  // A dropdown should close when you click away from it.
+  document.addEventListener("click", function (e) {
+    var picker = $("picker");
+    if (picker.open && !picker.contains(e.target)) picker.open = false;
+  });
+})();
+</script>
+</body>
+</html>
