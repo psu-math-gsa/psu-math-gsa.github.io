@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Printing Instructions</title>
+    <style>
+      body {
+        font-family: Roboto, system-ui, sans-serif;
+        line-height: 1.6;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 20px;
+        color: #333;
+      }
+
+      /* OS selector section/label/dropdown */
+      .switcher-container {
+        margin-bottom: 30px;
+        background: #f5f5f7;
+        padding: 15px;
+        border-radius: 8px;
+      }
+
+      label {
+        font-weight: bold;
+        margin-right: 10px;
+      }
+
+      select {
+        padding: 8px 12px;
+        font-size: 16px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+      }
+
+      /* Containers for each OS */
+      .os-specific {
+        display: none;
+        /* background: #fff; */
+        /* padding: 20px; */
+        /* border: 1px solid #e0e0e0; */
+        /* border-radius: 8px; */
+        /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); */
+      }
+
+      .linux {
+      }
+      /* .mac {} */
+      /* .windows {} */
+      /* .android {} */
+      /* .ios {} */
+      /* .gnome {} */
+      /* .cups {} */
+
+      .content-box {
+        padding: 20px;
+        padding-top: 0px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px #00000010;
+        margin-bottom: 30px;
+      }
+      .floating-img {
+        border-radius: 8px;
+        box-shadow: 0 10px 10px #666;
+        width: 600px;
+      }
+
+      @media (prefers-color-scheme: dark) {
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Printing in McAllister</h1>
+
+    <p>
+      For all operating systems, make sure you connect to the
+      <code>eduroam</code> network first. VPNs may cause problems when
+      attempting to add printers/print.
+    </p>
+
+    <!-- OS/method selector -->
+    <div class="switcher-container">
+      <label for="osSelector">Showing instructions for</label>
+      <select id="osSelector" onchange="showInstructions(this.value)">
+        <option value="linux">Linux</option>
+        <option value="mac">macOS</option>
+        <option value="chromebook">Chrome OS</option>
+        <option value="windows">Windows</option>
+        <option value="android">Android</option>
+        <option value="mobile">iOS & iPadOS (iPhone / iPad)</option>
+      </select>
+      <!-- If Linux, show GUI/CUPS selector -->
+      <div class="os-specific cli gnome">
+        <label for="linuxMethodSelector">using</label>
+        <select id="linuxMethodSelector" onchange="linuxMethod(this.value)">
+          <option value="cli">CUPS/command line</option>
+          <option value="gnome" selected>graphical settings</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="instructions-linux-cli" class="os-specific linux cli">
+      <div id="linux-cli-add" class="content-box">
+        <h2>Adding printers</h2>
+        <p>
+          This generally requires that your user is a member of the
+          <code>lpadmin</code> group. You can see if you are already a member by
+          running <code>groups $USER</code> in any terminal, which will output
+          your username and all groups you belong to. If you don't see
+          <code>lpadmin</code> listed, run
+          <code>sudo usermod -a -G lpadmin [username]</code> to add
+          <code>[username]</code> to the group. You may need to restart
+          afterwards for the change to take effect.
+        </p>
+        <ol>
+          <li>
+            <p>
+              Go to
+              <a href="http://localhost:631/admin/"
+                >http://localhost:631/admin/</a
+              >
+              to access the CUPS utility. If prompted, login using your username
+              or password. You should then see the CUPS administration screen:
+            </p>
+            <img
+              src="printing_images/linux_1_cups_admin.png"
+              width="600"
+              class="floating-img"
+            />
+          </li>
+          <li>
+            <p>
+              Select "Add printer". On the next screen, select "Internet
+              Printing Protocol (ipp)", then hit "Continue".
+            </p>
+            <img
+              src="./printing_images/linux_2_select_ipp.png"
+              width="600"
+              class="floating-img"
+            />
+          </li>
+          <li>
+            <p>
+              Type in the address: <code>ipp://[IP address]/ipp/print</code>
+            </p>
+            <img
+              src="./printing_images/linux_3_add_ip_address.png"
+              width="600"
+              class="floating-img"
+            />
+          </li>
+          <li>
+            Type in a name you will recognize (NOTE: this is hard to change
+            later!). Optionally add a description or location (can be modified
+            later).
+          </li>
+          <li>
+            Install printer drivers.
+            <ul>
+              <li>
+                Option 1: select from preinstalled system drivers.
+                <ol type="a">
+                  <li>
+                    <p>
+                      Select the printer make (Ricoh) from the list, then hit
+                      "Continue".
+                    </p>
+                    <img
+                      src="./printing_images/linux_4_select_make.png"
+                      class="floating-img"
+                    />
+                  </li>
+                  <li>
+                    <p>
+                      Select the printer model. This is likely IM 5000, but
+                      check the specific printer you're adding. You can choose
+                      either a PDF or PostScript (PS) driver; PDF may be faster,
+                      while PS is theoretically capable of higher image quality.
+                      After selecting the driver, hit "Continue".
+                    </p>
+                    <img
+                      src="./printing_images/linux_5_select_driver.png"
+                      class="floating-img"
+                    />
+                    <p>
+                      If you do not see the correct model, you can use IPP
+                      Everywhere drivers, or you can look on Ricoh's site for a
+                      <code>.ppd</code> file for the printer and use Option 2
+                      below.
+                    </p>
+                  </li>
+                </ol>
+              </li>
+              <li>
+                Option 2: download a <code>.ppd</code> file for the printer from
+                Ricoh's site, and upload it now.
+              </li>
+            </ul>
+          </li>
+          <li>
+            <p>
+              Hit "Set Printer Options" to install the finisher and set
+              defaults. (This can all be done later as well.)
+            </p>
+            <img
+              src="./printing_images/linux_6_printer_added.png"
+              class="floating-img"
+            />
+          </li>
+          <li>
+            <p>
+              Add the finisher: on the screen to select default options, select
+              "Finisher SR3260" in the finishers dropdown. (You can check the
+              sticker on the inside of the specific finisher for its model
+              number if selecting SR3260 does not work.)
+            </p>
+            <img
+              src="./printing_images/linux_7_add_finisher.png"
+              class="floating-img"
+            />
+          </li>
+        </ol>
+      </div>
+      <div id="linux-cli-manage" class="content-box">
+        <h2>Managing printers</h2>
+        <p>
+          CUPS can also be used to manage printers, even those added via a
+          system GUI. From the CUPS admin page, hit "Manage Printers" and click
+          on the name of the printer you wish to modify.
+        </p>
+        <ul>
+          <li>
+            You can print a test page or stop a current print job using the
+            first dropdown.
+          </li>
+          <li>
+            You can change the printer protocol, description, location, sharing
+            status, or drivers with the "Modify printer" option in the second
+            dropdown.
+          </li>
+          <li>
+            You can change installed options/default behavior with the "Set
+            Default Options" option in the second dropdown:
+            <ul>
+              <li>
+                Use the "Options Installed" section to change installed hardware
+                (should only be the finisher) and, if you used a PS driver,
+                PostScript mode.
+              </li>
+              <li>
+                Use "Finishing" to select defaults for one/two-sided printing
+                and stapling/embossing.
+              </li>
+            </ul>
+          </li>
+          <li>You can delete a printer.</li>
+          <li>
+            You <em>cannot</em> change the name of a printer here. You may be
+            able to change a printer's name by editing the file
+            <code>/etc/cups/printers.conf</code> but it is likely easier to
+            delete and re-add the printer with the desired name.
+          </li>
+        </ul>
+      </div>
+      <div class="content-box">
+        <h2>Printing via the command line</h2>
+        <p>
+          Many systems provide a printing GUI, which can be accessed with
+          <code>Ctrl + p</code>. However, it is also possible to print from the
+          command line.
+        </p>
+        <p>To print using the <code>lp</code> System V utility:</p>
+        <ul>
+          <li>
+            Use <code>-d [printername]</code> to specify the printer to use. You
+            can also run <code>lpoptions -d [printername]</code> to set
+            <code>[printername]</code> as your default printer.
+          </li>
+          <li>
+            Use <code>-n [number]</code> to print <code>[number]</code> copies.
+          </li>
+          <li>
+            Use <code>-o Duplex=[value]</code> to choose one/two-sided printing.
+            Valid values are <code>None</code> for one-sided prints,
+            <code>DuplexNoTumble</code> for two-sided prints which flip on long
+            edge (more common), and <code>DuplexTumble</code> for two-sided
+            prints which flip on short edge (less common, used with landscape
+            pages).
+          </li>
+          <li>
+            Use <code>-o StapleLocation=[value]</code> to staple. Valid values
+            are <code>UpperLeft</code>, <code>UpperRight</code>,
+            <code>LeftW</code> (two staples on left side), <code>RightW</code>,
+            <code>UpperW</code> for staples, and
+            <code>StaplessUpperLeft</code> and
+            <code>StaplessUpperRight</code> for embossing (up to 5 sheets).
+          </li>
+        </ul>
+        <p>
+          You can also use <code>lpr</code> to print; see its
+          <code>man</code> page for details.
+        </p>
+      </div>
+    </div>
+
+    <div id="instructions-linux-gnome" class="os-specific gnome">
+      <div id="linux-gnome" class="content-box">
+        <h2>Adding printers</h2>
+        <p>
+          These instructions were developed for the GNOME desktop environment
+          (which is the default on Ubuntu). Other desktop environments such as
+          KDE or Cosmic will likely offer similar graphical user interface
+          options, but if you cannot find the correct options to add a
+          printer/use finishing options then try the CUPS instructions instead.
+        </p>
+        <ol>
+          <li>
+            Search for printers in your system settings (or the apps ), and
+            select the option to add a printer.
+          </li>
+          <li>
+            Add the printer using IPP (internet printing protocol) by IP
+            address. You will likely have to search for the printer using the IP
+            address (in testing, no printers were discovered automatically).
+          </li>
+          <li>
+            Select the printer model to install the needed drivers. The black
+            and white printers should be model RICOH IM-5000, but you should
+            check the specific printer you are adding to be sure.
+          </li>
+          <li>
+            Under "printer options" for the printer you just added, select
+            "installable options" and install the finisher. The black and white
+            printers should have finisher SR-3260 (you can check the sticker on
+            the inside of the finisher if this does not work). This will allow
+            you to staple and use other finishing options.
+          </li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="os-specific mac">
+      <div id="mac-add" class="content-box">
+        <h2>Adding printers</h2>
+        <ol>
+          <li>
+            Download the RICOH print drivers from
+            <a
+              href="https://support.ricoh.com/bb/html/dr_ut_e/rc3/model/im2500/im2500.htm"
+              >Ricoh's site</a
+            >. (The department has primarily IM 5000 printers, which use the
+            same drivers as the IM 2500. If you are trying to add a different
+            model of printer, search for the drivers for that printer instead.)
+          </li>
+          <li>
+            Run the downloaded <code>.dmg</code> file to install the drivers.
+            (You can delete the file after installation if desired.)
+          </li>
+          <li>
+            Go to <em>System Settings > Printers & Scanners</em> and click "Add
+            Printer, Scanner, or Fax".
+            <img src="./printing_images/mac_1_add_printer.png" width="600" />
+          </li>
+          <li>
+            Select the IP tab (globe icon), enter the IP address of the printer
+            you wish to connect, give it a name you will recognize later, and
+            click Add.
+            <img src="./printing_images/mac_2_ipp.png" width="600" />
+          </li>
+          <li>
+            Click on the printer in the Printers list and click Options &
+            Supplies.
+            <img
+              src="./printing_images/mac_3_options_and_supplies.png"
+              width="600"
+            />
+          </li>
+          <li>
+            Navigate to the Options tab and select Finisher SR3260 in the
+            Finisher dropdown menu.
+            <img src="printing_images/mac_4_add_finisher.png" width="600" />
+          </li>
+          <!-- <li> -->
+          <!--   You should now be able to print. Finishing options can be found under -->
+          <!--   Printer Options > Printer Features and selecting Finishing from the -->
+          <!--   Feature Sets dropdown menu. -->
+          <!-- </li> -->
+        </ol>
+      </div>
+      <div id="mac-print" class="content-box">
+        <h2>Printing</h2>
+        <p>
+          The keyboard shortcut to print on Mac is <code>Command + p</code>.
+        </p>
+        <p>
+          If you have installed the finisher, finishing options can be found
+          under
+          <em>Printer Options > Printer Features</em> by selecting "Finishing"
+          from the Feature Sets dropdown menu.
+        </p>
+        <img src="printing_images/mac_5_finishing_1.png" width="600" />
+        <img src="printing_images/mac_6_finishing_2.png" width="600" />
+        <p></p>
+      </div>
+    </div>
+
+    <div class="os-specific chromebook">
+      <div class="content-box">
+        <h2>Adding printers</h2>
+        <ol>
+          <li>
+            In settings, navigate to the printers page (steps vary by version,
+            but you should be able to find it by searching “printer”)
+          </li>
+          <li>Hit “Add printer manually”.</li>
+          <li>
+            Add the printer using the Internet Printing Protocol (IPP) and the
+            queue ipp/print
+          </li>
+        </ol>
+        For instructions to add a printer while inside the Crostini development
+        environment, see the Linux CUPS/command line instructions.
+      </div>
+      <div class="content-box">
+        <h2>Printing</h2>
+        For finishing options when printing (such as stapling), hit “More
+        settings” and then “Advanced settings”. In testing, specialized
+        finishing options were not available. The “Staple” and “Staple top left”
+        options produced the same result.
+      </div>
+    </div>
+
+    <div class="os-specific windows"></div>
+
+    <!-- Logic for Detection and Switcher -->
+    <script>
+      function showInstructions(os) {
+        // Hide all instruction containers
+        const blocks = document.querySelectorAll(".os-specific");
+        blocks.forEach((block) => (block.style.display = "none"));
+
+        // Show the selected instruction container
+        var activeBlocks;
+        if (os == "linux") {
+          const methodSelector = document.getElementById("linuxMethodSelector");
+          const method = methodSelector.value;
+          activeBlocks = document.querySelectorAll(`.${method}`);
+        } else {
+          activeBlocks = document.querySelectorAll(`.${os}`);
+        }
+        activeBlocks.forEach((block) => (block.style.display = "block"));
+
+        // Keep the dropdown selector synchronized
+        document.getElementById("osSelector").value = os;
+      }
+
+      function detectOS() {
+        const ua = navigator.userAgent.toLowerCase();
+
+        // Handle iPadOS overriding standard mobile strings in desktop mode
+        const isMac = ua.includes("macintosh");
+        const isTouch = navigator.maxTouchPoints > 0;
+
+        if (
+          ua.includes("iphone") ||
+          ua.includes("ipad") ||
+          (isMac && isTouch)
+        ) {
+          return "ios";
+        }
+        if (ua.includes("android")) {
+          return "android";
+        }
+        if (ua.includes("win")) {
+          return "windows";
+        }
+        if (ua.includes("mac")) {
+          return "mac";
+        }
+        if (ua.includes("cros")) {
+          return "chromebook";
+        }
+        if (ua.includes("linux")) {
+          document.getElementById("linuxMethodSelector").value = "cli";
+          return "linux";
+        }
+        document.getElementById("linuxMethodSelector").value = "cli";
+        return "linux"; // Default fallback
+      }
+
+      // Initialize page display based on automatic detection on load
+      window.addEventListener("DOMContentLoaded", () => {
+        const detectedOS = detectOS();
+        showInstructions(detectedOS);
+      });
+    </script>
+  </body>
+</html>
