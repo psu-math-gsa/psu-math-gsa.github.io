@@ -94,7 +94,7 @@
       <!-- If Linux, show GUI/CUPS selector -->
       <div class="os-specific cli gnome">
         <label for="linuxMethodSelector">using</label>
-        <select id="linuxMethodSelector" onchange="linuxMethod(this.value)">
+        <select id="linuxMethodSelector" onchange="showInstructions('linux')">
           <option value="cli">CUPS/command line</option>
           <option value="gnome" selected>graphical settings</option>
         </select>
