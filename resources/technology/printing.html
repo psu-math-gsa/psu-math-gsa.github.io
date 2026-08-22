@@ -89,8 +89,7 @@
         <option value="mac">macOS</option>
         <option value="chromebook">Chrome OS</option>
         <option value="windows">Windows</option>
-        <option value="android">Android</option>
-        <option value="mobile">iOS & iPadOS (iPhone / iPad)</option>
+        <option value="mobile">Android/iOS/iPad OS</option>
       </select>
       <!-- If Linux, show GUI/CUPS selector -->
       <div class="os-specific cli gnome">
@@ -433,7 +432,166 @@
       </div>
     </div>
 
-    <div class="os-specific windows"></div>
+    <div class="os-specific windows">
+      <div class="content-box">
+        <h2>Adding printers</h2>
+        <p>Option 1: use the RICOH device manager</p>
+        <ol>
+          <li>
+            Download the RICOH device manager, which will select the appropriate
+            drivers and update them for you:
+            https://www.ricoh.com/software/dev_soft_manager
+          </li>
+          <li>
+            Run the installer. If you already have it installed, it will appear
+            in your start menu in a folder called “Device Software Manager”.
+          </li>
+          <li>Select “Network” as your setup method, then hit next.</li>
+          <li>
+            You will likely get an error message saying that it could not find
+            any devices. Hit “OK” to close it, then click the button reading
+            “Click if you cannot find the device”. (This is necessary while
+            connected to eduroam wifi due to the transition away from the PSU
+            network.)
+          </li>
+          <li>Choose “Specify device IP address”.</li>
+          <li>
+            Enter the IP address for the printer you want to add. If you want to
+            change the name of the printer in your computer to something
+            recognizable, you need to check the “Manually enter the settings”
+            box.
+          </li>
+          <li>
+            It will now search for and install the appropriate driver. If you
+            wanted to rename the printer, select the “Printer driver” checkbox,
+            set Driver Type to PCL6 Driver, and hit continue. Then change the
+            “printer name” field on the next screen.
+          </li>
+        </ol>
+        <p>Option 2: manage your own drivers</p>
+        <p>
+          You can download just the RICOH IM 5000 drivers. Then add the printer
+          as an IPP device in system settings, and select the drivers you
+          downloaded. You will need to manage driver updates yourself if you
+          choose this method.
+        </p>
+        <p></p>
+        <p>Option 3: add printer directly</p>
+        <p>
+          You can also add the printer as an IPP device using Microsoft's
+          default drivers. However, you cannot use all finisher options if you
+          do this, and you cannot set a custom default printer behavior.
+        </p>
+      </div>
+      <div class="content-box">
+        <h2>Adding the finisher</h2>
+        <p>
+          If the finisher is not automatically recognized, you will need to add
+          it to make stapling available and set default stapling/duplexing
+          behaviors.
+        </p>
+        <ol>
+          <li>
+            In settings, search for "Printers and scanners", then select the
+            desired printer. (If you did not rename it during initial
+            installation, you can rename it from this screen too.)
+          </li>
+          <li>
+            Select "Hardware Properties", then go to the accessories tab.
+            <ol type="a">
+              <li>
+                Most of the checkboxes will be grayed out; if you see a
+                selectable box for "Finisher SR3260" (or whichever finisher is
+                installed), make sure it is selected. You are now done.
+              </li>
+              <li>
+                Otherwise, hit "Update now" at the bottom to automatically scan
+                for printer accessories.
+              </li>
+            </ol>
+          </li>
+          <li>
+            To set default printing behavior, go to the "Advanced" tab, and hit
+            the "Printing Defaults" button at the bottom. Make sure to hit
+            "Apply" and then "Ok" to save your new default settings.
+          </li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="os-specific mobile">
+      <div class="content-box">
+        <h2>Connecting printers</h2>
+        <ol>
+          <li>
+            Install the Ricoh Connector app from the appropriate app store:
+            <ul>
+              <li>
+                <a
+                  href="https://play.google.com/store/apps/details?id=com.ricoh.smartdeviceconnector"
+                  >Google Play Store</a
+                >
+              </li>
+              <li>
+                <a href="https://itunes.apple.com/us/app/id904870505"
+                  >Apple App Store</a
+                >
+              </li>
+              <li>
+                <a href="https://www.ricoh.com/software/connector"
+                  >RICOH website</a
+                >
+              </li>
+            </ul>
+          </li>
+          <li>
+            Navigate to the connections screen (either in the side menu, or in
+            the banner below the selector for type of device when you’re on
+            “MFP/Printer”).
+          </li>
+          <li>
+            Select the “Add Machine” button under “Connect Machines on Same
+            Network”, then select “Add by IP Address/Host Name”.
+          </li>
+          <li>Type the IP address for the desired machine to add it.</li>
+        </ol>
+        <p>
+          You can also use NFC connection if you have an NFC-capable device;
+          this does not require adding the printer in advance.
+        </p>
+      </div>
+      <div class="content-box">
+        <h2>Printing</h2>
+        <p>You can send a print job from inside the RICOH Connector app:</p>
+        <ol>
+          <li>Under "MFP/Printer", hit "Print".</li>
+          <li>
+            To select a downloaded file, hit "Local Folder", then "Device Folder
+            (One File)". Choose the desired file from your downloads folder.
+          </li>
+          <li>
+            Hit "Print Settings" to select printing options including number of
+            copies, double-sided, color (where supported), and staples.
+          </li>
+          <li>Hit "Start" to print.</li>
+        </ol>
+        <p>You can also start from the file you want to print:</p>
+        <ol>
+          <li>Hit the share button, and select the RICOH connector app.</li>
+          <li>
+            Hit "Print" to select printing options including number of copies,
+            double-sided, and staples.
+          </li>
+          <li>Select "Start" to print.</li>
+        </ol>
+        <p>
+          You can also send a print job via NFC. On the "MFP/Printer" screen,
+          switch to "Connect with NFC" (instead of QR code/bluetooth/a
+          previously added Wi-Fi printer). Select print options as above, then
+          tap the printer with your device where indicated to start the print.
+        </p>
+      </div>
+    </div>
 
     <!-- Logic for Detection and Switcher -->
     <script>
@@ -469,10 +627,10 @@
           ua.includes("ipad") ||
           (isMac && isTouch)
         ) {
-          return "ios";
+          return "mobile";
         }
         if (ua.includes("android")) {
-          return "android";
+          return "mobile";
         }
         if (ua.includes("win")) {
           return "windows";
