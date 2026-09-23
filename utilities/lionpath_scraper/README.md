@@ -10,6 +10,13 @@ Two pieces that work together:
 Neither needs a server, a build step, or browser automation. The class search is PeopleSoft Fluid
 Search and can be driven with plain HTTP requests.
 
+## Typical use 
+
+```bash 
+.venv/bin/python mathscrape.py 
+.venv/bin/python bundle_data.py
+```
+
 ## Setup
 
 The first time you run this, create a virtual environment:
