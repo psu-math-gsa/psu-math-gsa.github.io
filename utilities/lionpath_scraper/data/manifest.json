@@ -19,6 +19,18 @@
       "term": "Fall 2026"
     },
     {
+      "file": "sp27_math_lower.csv",
+      "label": "Spring 2027 \u00b7 MATH 000\u2013299",
+      "note": "University Park \u00b7 159 classes \u00b7 pulled Sep 23, 2026",
+      "term": "Spring 2027"
+    },
+    {
+      "file": "sp27_math_upper.csv",
+      "label": "Spring 2027 \u00b7 MATH 300\u2013499",
+      "note": "University Park \u00b7 101 classes \u00b7 pulled Sep 23, 2026",
+      "term": "Spring 2027"
+    },
+    {
       "file": "sp27_math_grad.csv",
       "label": "Spring 2027 \u00b7 MATH 500\u2013599",
       "note": "University Park \u00b7 43 classes \u00b7 pulled Sep 18, 2026",

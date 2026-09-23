@@ -62,6 +62,9 @@ fail with `No module named 'bs4'`. Delete `.venv` and create it again with the t
 # only classes that still have seats
 .venv/bin/python scrape.py --subject STAT --open-only -o stat.csv
 
+# a range the site doesn't offer as one value: everything numbered 000-299
+.venv/bin/python scrape.py --course-level 000-099 100-199 200-299 -o lower.csv
+
 # what can I filter on?
 .venv/bin/python scrape.py --list-facets
 .venv/bin/python scrape.py --list-facets --term "Spring 2027"
@@ -69,8 +72,8 @@ fail with `No module named 'bs4'`. Delete `.venv` and create it again with the t
 ```
 
 Filters take the site's own labels (case doesn't matter, and the `(count)` suffix can be left off).
-Each takes one or more values after a single flag — `--subject CMPSC MATH`, not
-`--subject CMPSC --subject MATH`, which keeps only the last:
+Each takes one or more values after a single flag (see
+[Two or more values for one field](#two-or-more-values-for-one-field)):
 
 | Flag | Example |
 |---|---|
@@ -87,6 +90,31 @@ Each takes one or more values after a single flag — `--subject CMPSC MATH`, no
 | `--academic-session` | `"Seven Week - First"` |
 | `--class-starts`, `--units` | see `--list-facets` |
 | `--keywords` | free-text search |
+
+### Two or more values for one field
+
+List them after the one flag, space separated, quoting any that contain spaces:
+
+```bash
+--course-level 000-099 100-199 200-299      # everything numbered under 300
+--campus "University Park" "World Campus"
+```
+
+Values under the same flag are **OR**ed, exactly as ticking several boxes in one of the site's
+filter groups does — the run above is a single search returning every 000-, 100- and 200-level
+class. Different flags are **AND**ed, so `--subject CMPSC --course-level 400-499 500-599` means
+CMPSC *and* (400-level *or* 500-level).
+
+Two things to watch:
+
+- Repeating the flag does **not** add a value. `--campus A --campus B` keeps only `B`; write
+  `--campus A B`.
+- The site only offers a facet value while something still matches it, and the filters are applied
+  in the table's order (campus, career, subject, course level, …). So a value that is empty *given
+  the filters before it* stops the run with exit code `2` —
+  `--subject CMPSC --course-level 000-099 100-199` fails because CMPSC has no 000-level courses,
+  even though `000-099` is a real site-wide value. Drop the empty value, or run it as its own
+  search into a second CSV; the schedule builder loads several CSVs at once.
 
 Other options: `--open-only`, `--instructors`, `--related`, `--delay` (default 0.5s),
 `-o`/`--output`, `-v`/`--verbose`, `--no-progress`, and `--list-facets` / `--list-terms` to see
