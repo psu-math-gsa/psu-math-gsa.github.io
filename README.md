@@ -8,6 +8,7 @@ Penn State Math Graduate Students Association
 ## Utilities
 
 [Better class search](./utilities/lionpath_scraper/schedule_builder.html)
+[Gradescope export to Canvas import grade converter](./utilities/gradescope_to_canvas.html)
 
 ## External resources
 
