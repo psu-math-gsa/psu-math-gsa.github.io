@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>CSV Streaming Sketch</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+      /* one checkbox per line */
+      #sectionBoxes label {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <label for="csvIn">Gradescope CSV:</label>
+    <input type="file" id="csvIn" accept=".csv" />
+
+    <fieldset>
+      <legend>Sections to include:</legend>
+      <div id="sectionBoxes"></div>
+    </fieldset>
+
+    <label for="totalPoints">Total points:</label>
+    <input type="number" id="totalPoints" min="0" step="any" />
+
+    <label for="assignmentName">Assignment name:</label>
+    <input type="text" id="assignmentName" />
+
+    <button id="convertBtn" disabled>Convert &amp; download</button>
+    <p id="status"></p>
+
+    <script>
+      const csvIn = document.getElementById("csvIn");
+      const sectionBoxes = document.getElementById("sectionBoxes");
+      const totalPointsIn = document.getElementById("totalPoints");
+      const assignmentNameIn = document.getElementById("assignmentName");
+      const convertBtn = document.getElementById("convertBtn");
+      const status = document.getElementById("status");
+
+      // ---------------------------------------------------------------
+      // Input columns. Headers are lowercased on parse (see PARSE_OPTS), so
+      // these keys are lowercase too.
+      // ---------------------------------------------------------------
+      const IN = {
+        name: "name",
+        email: "email",
+        sections: "sections",
+        score: "total score",
+      };
+
+      // Shared by every Papa.parse call, so they all see the same keys.
+      // Note: headers differing only in case (e.g. "Email" / "email") would collide.
+      const PARSE_OPTS = {
+        header: true,
+        skipEmptyLines: true,
+        transformHeader: (h) => h.trim().toLowerCase(),
+      };
+
+      // A Sections cell may list several sections, e.g. "001, 002".
+      function splitSections(cell) {
+        return (cell ?? "")
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
+      }
+
+      // ---------------------------------------------------------------
+      // Step 1: stream the file once to collect the distinct sections.
+      // Touches every row but keeps only a Set, so memory use stays small.
+      // Also returns the header names, so we can check the columns we need exist.
+      // ---------------------------------------------------------------
+      function collectSections(file) {
+        return new Promise((resolve, reject) => {
+          const seen = new Set();
+          let fields = [];
+          Papa.parse(file, {
+            ...PARSE_OPTS,
+            step: ({ data, meta }) => {
+              if (!fields.length) fields = meta.fields ?? [];
+              for (const section of splitSections(data[IN.sections]))
+                seen.add(section);
+            },
+            complete: () => resolve({ sections: [...seen].sort(), fields }),
+            error: reject,
+          });
+        });
+      }
+
+      // One <label><input type=checkbox> value</label> per item; wrapping the
+      // input in its label makes the text clickable too.
+      function fillCheckboxes(container, items) {
+        container.replaceChildren(
+          ...items.map((item) => {
+            const box = document.createElement("input");
+            box.type = "checkbox";
+            box.value = item;
+            const label = document.createElement("label");
+            label.append(box, " ", item);
+            return label;
+          }),
+        );
+      }
+
+      function checkedValues(container) {
+        return [
+          ...container.querySelectorAll("input[type=checkbox]:checked"),
+        ].map((box) => box.value);
+      }
+
+      // ---------------------------------------------------------------
+      // Step 2: the output format.
+      // ---------------------------------------------------------------
+
+      const SUFFIXES = new Set(["jr", "jr.", "sr", "sr.", "ii", "iii", "iv"]);
+
+      // "First Last" -> "Last, First"; "First Middle Last" -> "Last, First Middle".
+      // A suffix stays with the last name: "John Smith Jr." -> "Smith Jr., John".
+      // Multi-word last names ("van Dyke") can't be detected from the string alone.
+      function canvasName(fullName) {
+        const words = (fullName ?? "").trim().split(/\s+/).filter(Boolean);
+        let last = words.pop();
+        if (last && words.length > 1 && SUFFIXES.has(last.toLowerCase())) {
+          last = `${words.pop()} ${last}`;
+        }
+        if (!words.length) return last ?? ""; // single-word name: leave as-is
+        return `${last}, ${words.join(" ")}`;
+      }
+
+      // Header row plus the "Points Possible" row, e.g.
+      //   Student,ID,SIS User ID,SIS Login ID,Section,Homework 3
+      //       Points Possible,,,,,100.0
+      // Papa.unparse quotes the leading-space cell; CSV readers still see the same text.
+      function headerRows(assignmentName, totalPoints) {
+        return [
+          [
+            "Student",
+            "ID",
+            "SIS User ID",
+            "SIS Login ID",
+            "Section",
+            assignmentName,
+          ],
+          ["    Points Possible", "", "", "", "", totalPoints.toFixed(1)],
+        ];
+      }
+
+      // One input row -> one output row, or null to skip it.
+      function transform(row, opts) {
+        const sections = splitSections(row[IN.sections]);
+        if (!sections.some((s) => opts.sections.has(s))) return null;
+        const email = (row[IN.email] ?? "").trim();
+        return [
+          canvasName(row[IN.name]),
+          "", // ID
+          email, // SIS User ID
+          email, // SIS Login ID
+          "", // Section
+          (row[IN.score] ?? "").trim(), // assignment score, copied as-is
+        ];
+      }
+
+      // ---------------------------------------------------------------
+      // Step 3: stream rows -> transform -> output sink.
+      // `sink` has write(text) and close(); see the two sinks below.
+      // ---------------------------------------------------------------
+      function processFile(file, opts, sink) {
+        return new Promise((resolve, reject) => {
+          let rowCount = 0;
+          let written = 0;
+          sink.write(
+            Papa.unparse(headerRows(opts.assignmentName, opts.totalPoints)) +
+              "\r\n",
+          );
+          Papa.parse(file, {
+            ...PARSE_OPTS,
+            step: ({ data, errors }) => {
+              if (errors.length) console.warn("Row parse error", errors);
+              const outRow = transform(data, opts);
+              if (outRow) {
+                sink.write(Papa.unparse([outRow]) + "\r\n");
+                written++;
+              }
+              if (++rowCount % 1000 === 0)
+                status.textContent = `${rowCount} rows...`;
+            },
+            complete: async () => {
+              await sink.close();
+              resolve({ rowCount, written });
+            },
+            error: reject,
+          });
+        });
+      }
+
+      // Sink A: Blob parts plus a download link. Works in every browser.
+      function blobSink(filename) {
+        const parts = [];
+        return {
+          write: (text) => parts.push(text),
+          close: () => {
+            const url = URL.createObjectURL(
+              new Blob(parts, { type: "text/csv" }),
+            );
+            const a = Object.assign(document.createElement("a"), {
+              href: url,
+              download: filename,
+            });
+            a.click();
+            setTimeout(() => URL.revokeObjectURL(url), 0);
+          },
+        };
+      }
+
+      // Sink B: File System Access API, which writes straight to disk (Chromium only).
+      // showSaveFilePicker must be called directly from a user gesture (the click).
+      async function diskSink(filename) {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: filename,
+          types: [{ description: "CSV", accept: { "text/csv": [".csv"] } }],
+        });
+        const writable = await handle.createWritable();
+        // Papa's step is synchronous, so chain the writes to keep them in order.
+        let pending = Promise.resolve();
+        return {
+          write: (text) => {
+            pending = pending.then(() => writable.write(text));
+          },
+          close: () => pending.then(() => writable.close()),
+        };
+      }
+
+      // ---------------------------------------------------------------
+      // Wiring
+      // ---------------------------------------------------------------
+      csvIn.addEventListener("change", async () => {
+        convertBtn.disabled = true;
+        sectionBoxes.replaceChildren();
+        const file = csvIn.files[0];
+        if (!file) return;
+        status.textContent = "Reading sections...";
+        const { sections, fields } = await collectSections(file);
+        const missing = Object.values(IN).filter(
+          (col) => !fields.includes(col),
+        );
+        if (missing.length) {
+          status.textContent = `This file is missing column(s): ${missing.join(", ")}`;
+          return;
+        }
+        fillCheckboxes(sectionBoxes, sections);
+        status.textContent = "";
+        convertBtn.disabled = false;
+      });
+
+      convertBtn.addEventListener("click", async () => {
+        const opts = {
+          sections: new Set(checkedValues(sectionBoxes)),
+          totalPoints: totalPointsIn.valueAsNumber, // NaN when the field is empty
+          assignmentName: assignmentNameIn.value.trim(),
+        };
+        // Validate before opening the save dialog, so nothing half-written is left behind.
+        if (!opts.sections.size)
+          return void (status.textContent = "Check at least one section.");
+        if (!Number.isFinite(opts.totalPoints) || opts.totalPoints < 0) {
+          return void (status.textContent =
+            "Enter the total points as a number.");
+        }
+        if (!opts.assignmentName)
+          return void (status.textContent = "Enter an assignment name.");
+
+        // Strip characters that aren't allowed in file names.
+        const outName = `${opts.assignmentName.replace(/[\\/:*?"<>|]/g, "_")} - Canvas.csv`;
+        try {
+          const sink = window.showSaveFilePicker
+            ? await diskSink(outName)
+            : blobSink(outName);
+          const { rowCount, written } = await processFile(
+            csvIn.files[0],
+            opts,
+            sink,
+          );
+          status.textContent = `Done: wrote ${written} of ${rowCount} rows.`;
+        } catch (err) {
+          // AbortError = the user closed the save dialog.
+          status.textContent =
+            err.name === "AbortError" ? "Cancelled." : `Error: ${err.message}`;
+        }
+      });
+    </script>
+  </body>
+</html>
